@@ -43,8 +43,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authorizationHeader.substring(7);
 
         String email = jwtService.extractEmail(token);
+        Long userId = jwtService.extractUserId(token);
 
         if (email != null &&
+                userId != null &&
                 SecurityContextHolder.getContext()
                         .getAuthentication() == null) {
 
@@ -52,7 +54,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 UserDetails userDetails =
                         org.springframework.security.core.userdetails.User
-                                .withUsername(email)
+                                .withUsername(String.valueOf(userId))
                                 .password("")
                                 .authorities("USER")
                                 .build();
@@ -78,3 +80,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
+
