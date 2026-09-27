@@ -14,8 +14,6 @@ public class InvestmentRequest {
     @NotBlank
     private String name;
 
-    private Long assetId;
-
     @NotBlank
     private String investmentType;
 

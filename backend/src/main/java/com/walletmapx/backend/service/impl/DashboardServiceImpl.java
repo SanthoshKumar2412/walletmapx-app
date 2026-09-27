@@ -2,6 +2,7 @@ package com.walletmapx.backend.service.impl;
 
 import com.walletmapx.backend.dto.dashboard.DashboardResponse;
 import com.walletmapx.backend.dto.dashboard.MonthlyDashboardResponse;
+import com.walletmapx.backend.exception.BadRequestException;
 import com.walletmapx.backend.entity.Asset;
 import com.walletmapx.backend.entity.Expense;
 import com.walletmapx.backend.entity.Income;
@@ -143,7 +144,7 @@ public class DashboardServiceImpl implements DashboardService {
         try {
             yearMonth = YearMonth.parse(month);
         } catch (Exception exception) {
-            throw new IllegalArgumentException(
+            throw new BadRequestException(
                     "Invalid month format. Use YYYY-MM"
             );
         }

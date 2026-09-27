@@ -30,7 +30,6 @@ public class InvestmentServiceImpl implements InvestmentService {
         Investment investment = new Investment();
 
         investment.setUserId(userId);
-        investment.setAssetId(request.getAssetId());
         investment.setName(request.getName());
         investment.setInvestmentType(request.getInvestmentType());
         investment.setQuantity(request.getQuantity());
@@ -91,7 +90,6 @@ public class InvestmentServiceImpl implements InvestmentService {
                 investmentId
         );
 
-        investment.setAssetId(request.getAssetId());
         investment.setName(request.getName());
         investment.setInvestmentType(request.getInvestmentType());
         investment.setQuantity(request.getQuantity());
@@ -163,7 +161,6 @@ public class InvestmentServiceImpl implements InvestmentService {
         return new InvestmentResponse(
                 investment.getId(),
                 investment.getUserId(),
-                investment.getAssetId(),
                 investment.getName(),
                 investment.getInvestmentType(),
                 investment.getQuantity(),

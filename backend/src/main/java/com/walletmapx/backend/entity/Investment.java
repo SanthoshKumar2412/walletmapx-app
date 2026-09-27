@@ -23,9 +23,6 @@ public class Investment {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "asset_id")
-    private Long assetId;
-
     @Column(nullable = false, length = 150)
     private String name;
 

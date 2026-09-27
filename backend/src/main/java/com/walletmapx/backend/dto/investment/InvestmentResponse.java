@@ -17,8 +17,6 @@ public class InvestmentResponse {
 
     private Long userId;
 
-    private Long assetId;
-
     private String name;
 
     private String investmentType;

@@ -3,6 +3,7 @@ package com.walletmapx.backend.service.impl;
 import com.walletmapx.backend.dto.asset.AssetRequest;
 import com.walletmapx.backend.dto.asset.AssetResponse;
 import com.walletmapx.backend.entity.Asset;
+import com.walletmapx.backend.exception.ResourceNotFoundException;
 import com.walletmapx.backend.repository.AssetRepository;
 import com.walletmapx.backend.service.AssetService;
 
@@ -55,7 +56,7 @@ public class AssetServiceImpl implements AssetService {
 
         Asset asset = assetRepository.findById(assetId)
                 .orElseThrow(() ->
-                        new RuntimeException(
+                        new ResourceNotFoundException(
                                 "Asset not found"
                         )
                 );
@@ -89,7 +90,7 @@ public class AssetServiceImpl implements AssetService {
 
         Asset asset = assetRepository.findById(assetId)
                 .orElseThrow(() ->
-                        new RuntimeException(
+                        new ResourceNotFoundException(
                                 "Asset not found"
                         )
                 );
@@ -110,7 +111,7 @@ public class AssetServiceImpl implements AssetService {
 
         Asset asset = assetRepository.findById(assetId)
                 .orElseThrow(() ->
-                        new RuntimeException(
+                        new ResourceNotFoundException(
                                 "Asset not found"
                         )
                 );
@@ -125,8 +126,13 @@ public class AssetServiceImpl implements AssetService {
             Long userId) {
 
         if (!asset.getUserId().equals(userId)) {
-            throw new RuntimeException(
-                    "You are not authorized to access this asset"
+
+            /*
+             * Return 404 instead of revealing that
+             * the record belongs to another user.
+             */
+            throw new ResourceNotFoundException(
+                    "Asset not found"
             );
         }
     }
