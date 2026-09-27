@@ -1,4 +1,3 @@
-
 package com.walletmapx.backend.service.impl;
 
 import com.walletmapx.backend.config.JwtService;
@@ -24,20 +23,32 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
-    @Override
-    public ApiResponse<String> register(RegisterRequest request) {
+    // =========================================================
+    // REGISTER
+    // =========================================================
 
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new BadRequestException("Email already registered");
+    @Override
+    public ApiResponse<String> register(
+            RegisterRequest request) {
+
+        if (userRepository.existsByEmail(
+                request.getEmail())) {
+
+            throw new BadRequestException(
+                    "Email already registered"
+            );
         }
 
         User user = new User();
 
         user.setName(request.getName());
+
         user.setEmail(request.getEmail());
 
         String encodedPassword =
-                passwordEncoder.encode(request.getPassword());
+                passwordEncoder.encode(
+                        request.getPassword()
+                );
 
         user.setPassword(encodedPassword);
 
@@ -50,32 +61,46 @@ public class AuthServiceImpl implements AuthService {
         );
     }
 
-    @Override
-    public ApiResponse<AuthResponse> login(LoginRequest request) {
+    // =========================================================
+    // LOGIN
+    // =========================================================
 
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() ->
-                        new BadRequestException("Invalid email or password"));
+    @Override
+    public ApiResponse<AuthResponse> login(
+            LoginRequest request) {
+
+        User user =
+                userRepository.findByEmail(
+                        request.getEmail()
+                ).orElseThrow(() ->
+                        new BadRequestException(
+                                "Invalid email or password"
+                        )
+                );
 
         if (!passwordEncoder.matches(
                 request.getPassword(),
                 user.getPassword())) {
 
-            throw new BadRequestException("Invalid email or password");
+            throw new BadRequestException(
+                    "Invalid email or password"
+            );
         }
 
-        String token = jwtService.generateToken(
-                user.getId(),
-                user.getEmail()
-        );
+        String token =
+                jwtService.generateToken(
+                        user.getId(),
+                        user.getEmail()
+                );
 
-        AuthResponse authResponse = new AuthResponse(
-                token,
-                "Bearer",
-                user.getId(),
-                user.getName(),
-                user.getEmail()
-        );
+        AuthResponse authResponse =
+                new AuthResponse(
+                        token,
+                        "Bearer",
+                        user.getId(),
+                        user.getName(),
+                        user.getEmail()
+                );
 
         return new ApiResponse<>(
                 true,
@@ -84,4 +109,3 @@ public class AuthServiceImpl implements AuthService {
         );
     }
 }
-
