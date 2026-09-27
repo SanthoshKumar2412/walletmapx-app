@@ -1,6 +1,9 @@
+
 package com.walletmapx.backend.controller;
 
 import com.walletmapx.backend.dto.ApiResponse;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -9,13 +12,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/test")
 public class TestController {
 
-    @GetMapping
-    public ApiResponse<String> test() {
+    @GetMapping("/protected")
+    public ResponseEntity<ApiResponse<String>> protectedEndpoint() {
 
-        return new ApiResponse<>(
-                true,
-                "WalletMapX backend is running",
-                "API is working"
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        true,
+                        "JWT authentication successful",
+                        "Welcome to the protected WalletMapX API"
+                )
         );
     }
 }
+

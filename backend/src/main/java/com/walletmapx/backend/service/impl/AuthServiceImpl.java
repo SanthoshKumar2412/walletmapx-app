@@ -1,6 +1,10 @@
+
 package com.walletmapx.backend.service.impl;
 
+import com.walletmapx.backend.config.JwtService;
 import com.walletmapx.backend.dto.ApiResponse;
+import com.walletmapx.backend.dto.auth.AuthResponse;
+import com.walletmapx.backend.dto.auth.LoginRequest;
 import com.walletmapx.backend.dto.auth.RegisterRequest;
 import com.walletmapx.backend.entity.User;
 import com.walletmapx.backend.exception.BadRequestException;
@@ -11,14 +15,14 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import com.walletmapx.backend.dto.auth.AuthResponse;
-import com.walletmapx.backend.dto.auth.LoginRequest;
+
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     @Override
     public ApiResponse<String> register(RegisterRequest request) {
@@ -45,6 +49,7 @@ public class AuthServiceImpl implements AuthService {
                 null
         );
     }
+
     @Override
     public ApiResponse<AuthResponse> login(LoginRequest request) {
 
@@ -59,9 +64,14 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException("Invalid email or password");
         }
 
+        String token = jwtService.generateToken(
+                user.getId(),
+                user.getEmail()
+        );
+
         AuthResponse authResponse = new AuthResponse(
-                null,
-                null,
+                token,
+                "Bearer",
                 user.getId(),
                 user.getName(),
                 user.getEmail()
@@ -74,3 +84,4 @@ public class AuthServiceImpl implements AuthService {
         );
     }
 }
+

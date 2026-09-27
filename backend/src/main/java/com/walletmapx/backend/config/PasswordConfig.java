@@ -1,3 +1,4 @@
+
 package com.walletmapx.backend.config;
 
 import org.springframework.context.annotation.Bean;
