@@ -3,17 +3,8 @@ package com.walletmapx.backend.service.impl;
 import com.walletmapx.backend.dto.dashboard.DashboardResponse;
 import com.walletmapx.backend.dto.dashboard.MonthlyDashboardResponse;
 import com.walletmapx.backend.exception.BadRequestException;
-import com.walletmapx.backend.entity.Asset;
-import com.walletmapx.backend.entity.Expense;
-import com.walletmapx.backend.entity.Income;
-import com.walletmapx.backend.entity.Investment;
-import com.walletmapx.backend.entity.Liability;
-import com.walletmapx.backend.repository.AssetRepository;
-import com.walletmapx.backend.repository.ExpenseRepository;
-import com.walletmapx.backend.repository.IncomeRepository;
-import com.walletmapx.backend.repository.InvestmentRepository;
-import com.walletmapx.backend.repository.LiabilityRepository;
 import com.walletmapx.backend.service.DashboardService;
+import com.walletmapx.backend.service.FinancialAggregationService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,11 +20,7 @@ import java.time.YearMonth;
 @Transactional(readOnly = true)
 public class DashboardServiceImpl implements DashboardService {
 
-    private final AssetRepository assetRepository;
-    private final LiabilityRepository liabilityRepository;
-    private final IncomeRepository incomeRepository;
-    private final ExpenseRepository expenseRepository;
-    private final InvestmentRepository investmentRepository;
+    private final FinancialAggregationService financialAggregationService;
 
     // =========================================================
     // MAIN DASHBOARD
@@ -42,80 +29,25 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public DashboardResponse getDashboard(Long userId) {
 
-        // =========================
-        // TOTAL ASSETS
-        // =========================
+        BigDecimal totalAssets =
+                financialAggregationService.totalAssets(userId);
 
-        BigDecimal totalAssets = assetRepository
-                .findByUserId(userId)
-                .stream()
-                .map(Asset::getCurrentValue)
-                .map(this::safeAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalLiabilities =
+                financialAggregationService.totalLiabilities(userId);
 
-        // =========================
-        // TOTAL LIABILITIES
-        // =========================
+        BigDecimal totalIncome =
+                financialAggregationService.totalIncome(userId);
 
-        BigDecimal totalLiabilities = liabilityRepository
-                .findByUserId(userId)
-                .stream()
-                .map(Liability::getOutstandingAmount)
-                .map(this::safeAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalExpenses =
+                financialAggregationService.totalExpenses(userId);
 
-        // =========================
-        // TOTAL INCOME
-        // =========================
+        BigDecimal totalInvestments =
+                financialAggregationService.totalInvestments(userId);
 
-        BigDecimal totalIncome = incomeRepository
-                .findByUserId(userId)
-                .stream()
-                .map(Income::getAmount)
-                .map(this::safeAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        // =========================
-        // TOTAL EXPENSES
-        // =========================
-
-        BigDecimal totalExpenses = expenseRepository
-                .findByUserId(userId)
-                .stream()
-                .map(Expense::getAmount)
-                .map(this::safeAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        // =========================
-        // TOTAL INVESTMENTS
-        // =========================
-
-        BigDecimal totalInvestments = investmentRepository
-                .findByUserId(userId)
-                .stream()
-                .map(Investment::getCurrentValue)
-                .map(this::safeAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        // =========================
-        // NET WORTH
-        // =========================
-        //
-        // Assets and Investments are
-        // stored separately.
-        //
-        // Net Worth =
-        // Assets + Investments - Liabilities
-        //
-        // =========================
-
+        // Net Worth = Assets + Investments - Liabilities
         BigDecimal netWorth = totalAssets
                 .add(totalInvestments)
                 .subtract(totalLiabilities);
-
-        // =========================
-        // RESPONSE MAPPING
-        // =========================
 
         return new DashboardResponse(
                 totalAssets,
@@ -136,8 +68,7 @@ public class DashboardServiceImpl implements DashboardService {
             Long userId,
             String month) {
 
-        // Expected format:
-        // 2026-09
+        // Expected format: 2026-09
 
         YearMonth yearMonth;
 
@@ -152,67 +83,27 @@ public class DashboardServiceImpl implements DashboardService {
         LocalDate startDate = yearMonth.atDay(1);
         LocalDate endDate = yearMonth.atEndOfMonth();
 
-        // =========================
-        // MONTHLY INCOME
-        // =========================
+        BigDecimal totalIncome =
+                financialAggregationService.totalIncomeBetween(
+                        userId,
+                        startDate,
+                        endDate
+                );
 
-        BigDecimal totalIncome = incomeRepository
-                .findByUserId(userId)
-                .stream()
-                .filter(income ->
-                        income.getIncomeDate() != null
-                                && !income.getIncomeDate().isBefore(startDate)
-                                && !income.getIncomeDate().isAfter(endDate)
-                )
-                .map(Income::getAmount)
-                .map(this::safeAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalExpenses =
+                financialAggregationService.totalExpensesBetween(
+                        userId,
+                        startDate,
+                        endDate
+                );
 
-        // =========================
-        // MONTHLY EXPENSES
-        // =========================
+        BigDecimal savings =
+                totalIncome.subtract(totalExpenses);
 
-        BigDecimal totalExpenses = expenseRepository
-                .findByUserId(userId)
-                .stream()
-                .filter(expense ->
-                        expense.getExpenseDate() != null
-                                && !expense.getExpenseDate().isBefore(startDate)
-                                && !expense.getExpenseDate().isAfter(endDate)
-                )
-                .map(Expense::getAmount)
-                .map(this::safeAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        // =========================
-        // SAVINGS
-        // =========================
-
-        BigDecimal savings = totalIncome
-                .subtract(totalExpenses);
-
-        // =========================
-        // TOTAL INVESTMENTS
-        // =========================
-        //
-        // Investments are not monthly income/expense
-        // transactions.
-        //
-        // So we return the user's current total
-        // investment value.
-        //
-        // =========================
-
-        BigDecimal totalInvestments = investmentRepository
-                .findByUserId(userId)
-                .stream()
-                .map(Investment::getCurrentValue)
-                .map(this::safeAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        // =========================
-        // RESPONSE MAPPING
-        // =========================
+        // Investments are not monthly income/expense transactions,
+        // so we return the user's current total investment value.
+        BigDecimal totalInvestments =
+                financialAggregationService.totalInvestments(userId);
 
         return new MonthlyDashboardResponse(
                 month,
@@ -221,16 +112,5 @@ public class DashboardServiceImpl implements DashboardService {
                 savings,
                 totalInvestments
         );
-    }
-
-    // =========================================================
-    // SAFE BIGDECIMAL MAPPING
-    // =========================================================
-
-    private BigDecimal safeAmount(BigDecimal amount) {
-
-        return amount != null
-                ? amount
-                : BigDecimal.ZERO;
     }
 }

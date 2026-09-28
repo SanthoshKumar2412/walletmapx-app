@@ -32,9 +32,10 @@ public class SecurityConfig {
 
                         .requestMatchers(
                                 "/api/auth/register",
-                                "/api/auth/login"
+                                "/api/auth/login",
+                                "/uploads/profile/**"
                         ).permitAll()
-
+                         
                         .anyRequest().authenticated()
                 )
 
