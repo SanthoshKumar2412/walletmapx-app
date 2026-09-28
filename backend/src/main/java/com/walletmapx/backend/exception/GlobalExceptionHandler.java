@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.HashMap;
 import java.util.Map;
-
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -108,6 +108,20 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(response);
+    }
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMaxUploadSizeExceeded(
+            MaxUploadSizeExceededException exception) {
+
+        ApiResponse<Void> response = new ApiResponse<>(
+                false,
+                "Profile image must be less than 5 MB",
+                null
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.PAYLOAD_TOO_LARGE)
                 .body(response);
     }
 }
