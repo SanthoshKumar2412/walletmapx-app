@@ -1,0 +1,1052 @@
+<div class="mx-auto w-full max-w-7xl">
+
+  <!-- ===================================================== -->
+  <!-- HEADER -->
+  <!-- ===================================================== -->
+
+  <div
+    class="mb-6 flex flex-col gap-4
+           sm:flex-row sm:items-center
+           sm:justify-between"
+  >
+
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 sm:text-3xl">
+        Assets
+      </h1>
+
+      <p class="mt-1 text-sm text-gray-500">
+        Track and manage your assets
+      </p>
+    </div>
+
+    <button
+      type="button"
+      (click)="openForm()"
+      class="w-full rounded-lg bg-blue-600
+             px-4 py-2.5 text-sm font-semibold
+             text-white transition
+             hover:bg-blue-700
+             sm:w-auto"
+    >
+      + Add Asset
+    </button>
+
+  </div>
+
+
+  <!-- ===================================================== -->
+  <!-- SUCCESS MESSAGE -->
+  <!-- ===================================================== -->
+
+  @if (successMessage) {
+
+    <div
+      class="mb-5 rounded-lg border
+             border-green-200 bg-green-50 p-4"
+    >
+      <p class="text-sm font-medium text-green-700">
+        {{ successMessage }}
+      </p>
+    </div>
+
+  }
+
+
+  <!-- ===================================================== -->
+  <!-- ERROR MESSAGE -->
+  <!-- ===================================================== -->
+
+  @if (errorMessage) {
+
+    <div
+      class="mb-5 rounded-lg border
+             border-red-200 bg-red-50 p-4"
+    >
+      <p class="text-sm font-medium text-red-700">
+        {{ errorMessage }}
+      </p>
+    </div>
+
+  }
+
+
+  <!-- ===================================================== -->
+  <!-- SUMMARY -->
+  <!-- ===================================================== -->
+
+  <div
+    class="mb-6 grid grid-cols-1 gap-4
+           sm:grid-cols-2
+           lg:grid-cols-3"
+  >
+
+    <!-- Invested -->
+
+    <div
+      class="rounded-xl bg-white p-5
+             shadow-sm ring-1 ring-gray-100"
+    >
+
+      <p class="text-sm text-gray-500">
+        Total Invested
+      </p>
+
+      <p
+        class="mt-2 text-xl font-bold
+               text-gray-900 sm:text-2xl"
+      >
+        ₹{{ totalInvested | number:'1.0-2' }}
+      </p>
+
+    </div>
+
+
+    <!-- Current Value -->
+
+    <div
+      class="rounded-xl bg-white p-5
+             shadow-sm ring-1 ring-gray-100"
+    >
+
+      <p class="text-sm text-gray-500">
+        Current Value
+      </p>
+
+      <p
+        class="mt-2 text-xl font-bold
+               text-blue-600 sm:text-2xl"
+      >
+        ₹{{ totalCurrentValue | number:'1.0-2' }}
+      </p>
+
+    </div>
+
+
+    <!-- Profit/Loss -->
+
+    <div
+      class="rounded-xl bg-white p-5
+             shadow-sm ring-1 ring-gray-100"
+    >
+
+      <p class="text-sm text-gray-500">
+        Total Profit / Loss
+      </p>
+
+      <p
+        class="mt-2 text-xl font-bold sm:text-2xl"
+        [class.text-green-600]="totalProfitLoss >= 0"
+        [class.text-red-600]="totalProfitLoss < 0"
+      >
+        {{ totalProfitLoss >= 0 ? '+' : '' }}
+        ₹{{ totalProfitLoss | number:'1.0-2' }}
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <!-- ===================================================== -->
+  <!-- ADD / EDIT FORM -->
+  <!-- ===================================================== -->
+
+  @if (showForm) {
+
+    <div
+      class="mb-6 rounded-xl bg-white p-5
+             shadow-sm ring-1 ring-gray-100
+             sm:p-6"
+    >
+
+      <!-- Form Header -->
+
+      <div
+        class="mb-5 flex items-center
+               justify-between"
+      >
+
+        <div>
+
+          <h2
+            class="text-lg font-semibold
+                   text-gray-900"
+          >
+            {{ editingAssetId !== null
+                ? 'Edit Asset'
+                : 'Add Asset' }}
+          </h2>
+
+          <p
+            class="mt-1 text-sm text-gray-500"
+          >
+            {{ editingAssetId !== null
+                ? 'Update your asset details'
+                : 'Add a new asset to your portfolio' }}
+          </p>
+
+        </div>
+
+        <button
+          type="button"
+          (click)="closeForm()"
+          class="rounded-lg p-2 text-gray-400
+                 transition hover:bg-gray-100
+                 hover:text-gray-700"
+          aria-label="Close"
+        >
+          ✕
+        </button>
+
+      </div>
+
+
+      <!-- Form -->
+
+      <form
+        (submit)="$event.preventDefault(); saveAsset()"
+        class="grid grid-cols-1 gap-5
+               md:grid-cols-2"
+      >
+
+        <!-- Category -->
+
+        <div>
+
+          <label
+            for="assetCategory"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Category
+          </label>
+
+          <select
+            id="assetCategory"
+            [(ngModel)]="form.categoryId"
+            name="categoryId"
+            class="w-full rounded-lg border
+                   border-gray-300 bg-white
+                   px-3 py-2.5 text-sm
+                   outline-none
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100"
+          >
+
+            <option [ngValue]="null">
+              Select category
+            </option>
+
+            @for (
+              category of categories;
+              track category.id
+            ) {
+
+              <option
+                [ngValue]="category.id"
+              >
+                {{ category.name }}
+              </option>
+
+            }
+
+          </select>
+
+          @if (categoriesLoading) {
+
+            <p
+              class="mt-1 text-xs text-gray-400"
+            >
+              Loading categories...
+            </p>
+
+          }
+
+        </div>
+
+
+        <!-- Asset Name -->
+
+        <div>
+
+          <label
+            for="assetName"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Asset Name
+          </label>
+
+          <input
+            id="assetName"
+            type="text"
+            [(ngModel)]="form.name"
+            name="name"
+            placeholder="Gold, FD, Property..."
+            maxlength="100"
+            class="w-full rounded-lg border
+                   border-gray-300 px-3 py-2.5
+                   text-sm outline-none
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100"
+          />
+
+        </div>
+
+
+        <!-- Institution -->
+
+        <div>
+
+          <label
+            for="institution"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Institution
+          </label>
+
+          <input
+            id="institution"
+            type="text"
+            [(ngModel)]="form.institution"
+            name="institution"
+            placeholder="Bank, broker, company..."
+            class="w-full rounded-lg border
+                   border-gray-300 px-3 py-2.5
+                   text-sm outline-none
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100"
+          />
+
+        </div>
+
+
+        <!-- Invested Amount -->
+
+        <div>
+
+          <label
+            for="investedAmount"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Invested Amount
+          </label>
+
+          <div class="relative">
+
+            <span
+              class="absolute left-3 top-1/2
+                     -translate-y-1/2
+                     text-sm text-gray-500"
+            >
+              ₹
+            </span>
+
+            <input
+              id="investedAmount"
+              type="number"
+              [(ngModel)]="form.investedAmount"
+              name="investedAmount"
+              min="0"
+              step="0.01"
+              placeholder="0"
+              class="w-full rounded-lg border
+                     border-gray-300
+                     py-2.5 pl-8 pr-3
+                     text-sm outline-none
+                     focus:border-blue-500
+                     focus:ring-2
+                     focus:ring-blue-100"
+            />
+
+          </div>
+
+        </div>
+
+
+        <!-- Current Value -->
+
+        <div>
+
+          <label
+            for="currentValue"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Current Value
+          </label>
+
+          <div class="relative">
+
+            <span
+              class="absolute left-3 top-1/2
+                     -translate-y-1/2
+                     text-sm text-gray-500"
+            >
+              ₹
+            </span>
+
+            <input
+              id="currentValue"
+              type="number"
+              [(ngModel)]="form.currentValue"
+              name="currentValue"
+              min="0"
+              step="0.01"
+              placeholder="0"
+              class="w-full rounded-lg border
+                     border-gray-300
+                     py-2.5 pl-8 pr-3
+                     text-sm outline-none
+                     focus:border-blue-500
+                     focus:ring-2
+                     focus:ring-blue-100"
+            />
+
+          </div>
+
+        </div>
+
+
+        <!-- Purchase Date -->
+
+        <div>
+
+          <label
+            for="purchaseDate"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Purchase Date
+          </label>
+
+          <input
+            id="purchaseDate"
+            type="date"
+            [(ngModel)]="form.purchaseDate"
+            name="purchaseDate"
+            class="w-full rounded-lg border
+                   border-gray-300 px-3 py-2.5
+                   text-sm outline-none
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100"
+          />
+
+        </div>
+
+
+        <!-- Notes -->
+
+        <div class="md:col-span-2">
+
+          <label
+            for="notes"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Notes
+          </label>
+
+          <textarea
+            id="notes"
+            [(ngModel)]="form.notes"
+            name="notes"
+            rows="3"
+            maxlength="500"
+            placeholder="Add any additional notes..."
+            class="w-full resize-none rounded-lg
+                   border border-gray-300
+                   px-3 py-2.5 text-sm
+                   outline-none
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100"
+          ></textarea>
+
+        </div>
+
+
+        <!-- Buttons -->
+
+        <div
+          class="flex flex-col gap-3
+                 sm:flex-row
+                 md:col-span-2
+                 md:justify-end"
+        >
+
+          <button
+            type="button"
+            (click)="closeForm()"
+            class="w-full rounded-lg border
+                   border-gray-300 px-5 py-2.5
+                   text-sm font-medium
+                   text-gray-700
+                   hover:bg-gray-50
+                   sm:w-auto"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            [disabled]="submitting"
+            class="w-full rounded-lg
+                   bg-blue-600 px-5 py-2.5
+                   text-sm font-semibold
+                   text-white
+                   hover:bg-blue-700
+                   disabled:cursor-not-allowed
+                   disabled:opacity-50
+                   sm:w-auto"
+          >
+
+            @if (submitting) {
+
+              Saving...
+
+            } @else {
+
+              {{ editingAssetId !== null
+                  ? 'Update Asset'
+                  : 'Save Asset' }}
+
+            }
+
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  }
+
+
+  <!-- ===================================================== -->
+  <!-- ASSET LIST -->
+  <!-- ===================================================== -->
+
+  <div
+    class="overflow-hidden rounded-xl
+           bg-white shadow-sm
+           ring-1 ring-gray-100"
+  >
+
+    <!-- List Header -->
+
+    <div
+      class="border-b border-gray-100
+             p-5"
+    >
+
+      <h2
+        class="text-lg font-semibold
+               text-gray-900"
+      >
+        Asset History
+      </h2>
+
+      <p
+        class="mt-1 text-sm text-gray-500"
+      >
+        {{ assets.length }}
+        {{ assets.length === 1 ? 'asset' : 'assets' }}
+      </p>
+
+    </div>
+
+
+    <!-- Loading -->
+
+    @if (loading) {
+
+      <div class="p-8 text-center">
+
+        <p class="text-sm text-gray-500">
+          Loading assets...
+        </p>
+
+      </div>
+
+    }
+
+
+    <!-- Empty -->
+
+    @else if (assets.length === 0) {
+
+      <div
+        class="p-8 text-center"
+      >
+
+        <div
+          class="mx-auto flex h-14 w-14
+                 items-center justify-center
+                 rounded-full bg-blue-50
+                 text-2xl"
+        >
+          💰
+        </div>
+
+        <p
+          class="mt-4 font-medium
+                 text-gray-900"
+        >
+          No assets found
+        </p>
+
+        <p
+          class="mt-1 text-sm
+                 text-gray-500"
+        >
+          Start adding your assets
+          to track your net worth.
+        </p>
+
+        <button
+          type="button"
+          (click)="openForm()"
+          class="mt-4 text-sm
+                 font-semibold text-blue-600
+                 hover:text-blue-700"
+        >
+          + Add your first asset
+        </button>
+
+      </div>
+
+    }
+
+
+    <!-- DATA -->
+
+    @else {
+
+      <!-- ================================================= -->
+      <!-- DESKTOP TABLE -->
+      <!-- ================================================= -->
+
+      <div
+        class="hidden overflow-x-auto md:block"
+      >
+
+        <table
+          class="w-full min-w-[900px]
+                 text-left"
+        >
+
+          <thead
+            class="border-b border-gray-100
+                   bg-gray-50"
+          >
+
+            <tr>
+
+              <th
+                class="px-5 py-3 text-xs
+                       font-semibold uppercase
+                       tracking-wide
+                       text-gray-500"
+              >
+                Asset
+              </th>
+
+              <th
+                class="px-5 py-3 text-xs
+                       font-semibold uppercase
+                       tracking-wide
+                       text-gray-500"
+              >
+                Category
+              </th>
+
+              <th
+                class="px-5 py-3 text-xs
+                       font-semibold uppercase
+                       tracking-wide
+                       text-gray-500"
+              >
+                Invested
+              </th>
+
+              <th
+                class="px-5 py-3 text-xs
+                       font-semibold uppercase
+                       tracking-wide
+                       text-gray-500"
+              >
+                Current Value
+              </th>
+
+              <th
+                class="px-5 py-3 text-xs
+                       font-semibold uppercase
+                       tracking-wide
+                       text-gray-500"
+              >
+                Profit / Loss
+              </th>
+
+              <th
+                class="px-5 py-3 text-xs
+                       font-semibold uppercase
+                       tracking-wide
+                       text-gray-500"
+              >
+                Date
+              </th>
+
+              <th
+                class="px-5 py-3 text-right
+                       text-xs font-semibold
+                       uppercase tracking-wide
+                       text-gray-500"
+              >
+                Actions
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody
+            class="divide-y divide-gray-100"
+          >
+
+            @for (
+              asset of assets;
+              track asset.id
+            ) {
+
+              <tr
+                class="transition
+                       hover:bg-gray-50"
+              >
+
+                <!-- Asset -->
+
+                <td class="px-5 py-4">
+
+                  <p
+                    class="font-semibold
+                           text-gray-900"
+                  >
+                    {{ asset.name }}
+                  </p>
+
+                  @if (asset.institution) {
+
+                    <p
+                      class="mt-1 text-xs
+                             text-gray-500"
+                    >
+                      {{ asset.institution }}
+                    </p>
+
+                  }
+
+                </td>
+
+
+                <!-- Category -->
+
+                <td
+                  class="px-5 py-4
+                         text-sm text-gray-600"
+                >
+                  {{ getCategoryName(asset.categoryId) }}
+                </td>
+
+
+                <!-- Invested -->
+
+                <td class="px-5 py-4">
+
+                  <p
+                    class="font-medium
+                           text-gray-900"
+                  >
+                    ₹{{ asset.investedAmount | number:'1.0-2' }}
+                  </p>
+
+                </td>
+
+
+                <!-- Current -->
+
+                <td class="px-5 py-4">
+
+                  <p
+                    class="font-semibold
+                           text-blue-600"
+                  >
+                    ₹{{ asset.currentValue | number:'1.0-2' }}
+                  </p>
+
+                </td>
+
+
+                <!-- Profit / Loss -->
+
+                <td class="px-5 py-4">
+
+                  <p
+                    class="font-semibold"
+                    [class.text-green-600]="getProfitLoss(asset) >= 0"
+                    [class.text-red-600]="getProfitLoss(asset) < 0"
+                  >
+                    {{ getProfitLoss(asset) >= 0 ? '+' : '' }}
+                    ₹{{ getProfitLoss(asset) | number:'1.0-2' }}
+                  </p>
+
+                </td>
+
+
+                <!-- Date -->
+
+                <td
+                  class="px-5 py-4
+                         text-sm text-gray-600"
+                >
+                  {{ asset.purchaseDate }}
+                </td>
+
+
+                <!-- Actions -->
+
+                <td class="px-5 py-4">
+
+                  <div
+                    class="flex justify-end
+                           gap-2"
+                  >
+
+                    <button
+                      type="button"
+                      (click)="editAsset(asset)"
+                      class="rounded-lg px-3 py-1.5
+                             text-xs font-medium
+                             text-blue-600
+                             hover:bg-blue-50"
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      type="button"
+                      (click)="deleteAsset(asset.id)"
+                      class="rounded-lg px-3 py-1.5
+                             text-xs font-medium
+                             text-red-600
+                             hover:bg-red-50"
+                    >
+                      Delete
+                    </button>
+
+                  </div>
+
+                </td>
+
+              </tr>
+
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+
+      <!-- ================================================= -->
+      <!-- MOBILE CARDS -->
+      <!-- ================================================= -->
+
+      <div
+        class="divide-y divide-gray-100
+               md:hidden"
+      >
+
+        @for (
+          asset of assets;
+          track asset.id
+        ) {
+
+          <div class="p-5">
+
+            <!-- Top -->
+
+            <div
+              class="flex items-start
+                     justify-between gap-4"
+            >
+
+              <div class="min-w-0">
+
+                <p
+                  class="truncate font-semibold
+                         text-gray-900"
+                >
+                  {{ asset.name }}
+                </p>
+
+                <p
+                  class="mt-1 text-xs
+                         text-gray-500"
+                >
+                  {{ getCategoryName(asset.categoryId) }}
+                </p>
+
+                @if (asset.institution) {
+
+                  <p
+                    class="mt-1 text-xs
+                           text-gray-400"
+                  >
+                    {{ asset.institution }}
+                  </p>
+
+                }
+
+              </div>
+
+              <div class="shrink-0 text-right">
+
+                <p
+                  class="font-bold
+                         text-blue-600"
+                >
+                  ₹{{ asset.currentValue | number:'1.0-2' }}
+                </p>
+
+                <p
+                  class="mt-1 text-xs"
+                  [class.text-green-600]="getProfitLoss(asset) >= 0"
+                  [class.text-red-600]="getProfitLoss(asset) < 0"
+                >
+                  {{ getProfitLoss(asset) >= 0 ? '+' : '' }}
+                  ₹{{ getProfitLoss(asset) | number:'1.0-2' }}
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <!-- Details -->
+
+            <div
+              class="mt-4 grid grid-cols-2
+                     gap-3 rounded-lg
+                     bg-gray-50 p-3"
+            >
+
+              <div>
+
+                <p
+                  class="text-xs text-gray-500"
+                >
+                  Invested
+                </p>
+
+                <p
+                  class="mt-1 text-sm
+                         font-semibold
+                         text-gray-900"
+                >
+                  ₹{{ asset.investedAmount | number:'1.0-2' }}
+                </p>
+
+              </div>
+
+
+              <div>
+
+                <p
+                  class="text-xs text-gray-500"
+                >
+                  Purchase Date
+                </p>
+
+                <p
+                  class="mt-1 text-sm
+                         font-semibold
+                         text-gray-900"
+                >
+                  {{ asset.purchaseDate }}
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <!-- Notes -->
+
+            @if (asset.notes) {
+
+              <p
+                class="mt-3 text-sm
+                       text-gray-600"
+              >
+                {{ asset.notes }}
+              </p>
+
+            }
+
+
+            <!-- Actions -->
+
+            <div
+              class="mt-4 flex gap-2"
+            >
+
+              <button
+                type="button"
+                (click)="editAsset(asset)"
+                class="flex-1 rounded-lg
+                       border border-blue-200
+                       px-3 py-2 text-sm
+                       font-medium
+                       text-blue-600
+                       hover:bg-blue-50"
+              >
+                Edit
+              </button>
+
+              <button
+                type="button"
+                (click)="deleteAsset(asset.id)"
+                class="flex-1 rounded-lg
+                       border border-red-200
+                       px-3 py-2 text-sm
+                       font-medium
+                       text-red-600
+                       hover:bg-red-50"
+              >
+                Delete
+              </button>
+
+            </div>
+
+          </div>
+
+        }
+
+      </div>
+
+    }
+
+  </div>
+
+</div>

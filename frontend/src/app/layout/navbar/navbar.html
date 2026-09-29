@@ -1,0 +1,96 @@
+<header class="sticky top-0 z-40 border-b border-gray-200 bg-white">
+
+  <div class="flex h-16 items-center justify-between px-4 sm:px-6">
+
+    <!-- Mobile Menu -->
+    <button
+      type="button"
+      (click)="onMenuClick()"
+      class="rounded-lg p-2 text-gray-600 hover:bg-gray-100 lg:hidden"
+      aria-label="Open menu"
+    >
+      ☰
+    </button>
+
+    <!-- Brand -->
+    <div class="flex items-center gap-2">
+
+      <div
+        class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 font-bold text-white"
+      >
+        W
+      </div>
+
+      <span class="text-lg font-bold text-gray-900">
+        WalletMapX
+      </span>
+
+    </div>
+
+<!-- Right Side -->
+<div class="flex items-center gap-3">
+
+  <!-- Notification -->
+  <button
+    type="button"
+    class="rounded-lg p-2 text-gray-500
+           transition hover:bg-gray-100"
+    aria-label="Notifications"
+  >
+    🔔
+  </button>
+
+
+  <!-- Profile -->
+  <button
+    type="button"
+    (click)="openProfile()"
+    class="flex h-10 w-10 items-center justify-center
+           overflow-hidden rounded-full
+           bg-blue-100
+           font-semibold text-blue-700
+           transition hover:ring-2
+           hover:ring-blue-300"
+    title="My Profile"
+  >
+
+    @if (profileImageUrl) {
+
+      <img
+        [src]="profileImageUrl"
+        alt="Profile"
+        class="h-full w-full object-cover"
+      />
+
+    }
+
+    @else {
+
+      <span>
+        {{ profile?.name?.charAt(0)?.toUpperCase() || 'U' }}
+      </span>
+
+    }
+
+  </button>
+
+
+  <!-- Logout -->
+  <button
+    type="button"
+    (click)="logout()"
+    class="rounded-lg p-2
+           text-gray-500
+           transition
+           hover:bg-red-50
+           hover:text-red-600"
+    title="Logout"
+    aria-label="Logout"
+  >
+    ⇥
+  </button>
+
+</div>
+  </div>
+
+</header>

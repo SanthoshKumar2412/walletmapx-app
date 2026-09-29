@@ -1,0 +1,117 @@
+<aside
+  class="fixed left-0 top-16 z-50
+         h-[calc(100vh-4rem)] w-64
+         overflow-y-auto
+         border-r border-gray-200
+         bg-white
+         transition-transform duration-300
+         -translate-x-full
+         lg:translate-x-0"
+>
+
+  <nav class="space-y-1 p-4">
+
+    <!-- Dashboard -->
+    <a
+      routerLink="/dashboard"
+      routerLinkActive="bg-blue-50 text-blue-600"
+      [routerLinkActiveOptions]="{ exact: true }"
+      (click)="closeMenu()"
+      class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50"
+    >
+      <span>📊</span>
+      <span>Dashboard</span>
+    </a>
+
+    <!-- Income -->
+    <a
+      routerLink="/income"
+      routerLinkActive="bg-blue-50 text-blue-600"
+      (click)="closeMenu()"
+      class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50"
+    >
+      <span>💰</span>
+      <span>Income</span>
+    </a>
+
+    <!-- Expenses -->
+    <a
+      routerLink="/expenses"
+      routerLinkActive="bg-blue-50 text-blue-600"
+      (click)="closeMenu()"
+      class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50"
+    >
+      <span>💸</span>
+      <span>Expenses</span>
+    </a>
+
+    <!-- Assets -->
+    <a
+      routerLink="/assets"
+      routerLinkActive="bg-blue-50 text-blue-600"
+      (click)="closeMenu()"
+      class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50"
+    >
+      <span>🏠</span>
+      <span>Assets</span>
+    </a>
+
+    <!-- Liabilities -->
+    <a
+      routerLink="/liabilities"
+      routerLinkActive="bg-blue-50 text-blue-600"
+      (click)="closeMenu()"
+      class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50"
+    >
+      <span>📋</span>
+      <span>Liabilities</span>
+    </a>
+
+    <!-- Investments -->
+    <a
+      routerLink="/investments"
+      routerLinkActive="bg-blue-50 text-blue-600"
+      (click)="closeMenu()"
+      class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50"
+    >
+      <span>📈</span>
+      <span>Investments</span>
+    </a>
+
+    <!-- Statistics -->
+    <a
+      routerLink="/statistics"
+      routerLinkActive="bg-blue-50 text-blue-600"
+      (click)="closeMenu()"
+      class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50"
+    >
+      <span>📊</span>
+      <span>Statistics</span>
+    </a>
+
+    <!-- Profile -->
+    <a
+      routerLink="/profile"
+      routerLinkActive="bg-blue-50 text-blue-600"
+      (click)="closeMenu()"
+      class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50"
+    >
+      <span>👤</span>
+      <span>Profile</span>
+    </a>
+
+    <!-- Divider -->
+    <div class="my-4 border-t border-gray-200"></div>
+
+    <!-- Logout -->
+    <button
+      type="button"
+      class="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-red-600 hover:bg-red-50"
+    >
+      <span>🚪</span>
+      <span>Logout</span>
+    </button>
+
+  </nav>
+
+</aside>

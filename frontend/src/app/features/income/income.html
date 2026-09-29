@@ -1,0 +1,763 @@
+<div class="mx-auto w-full max-w-7xl">
+
+  <!-- ===================================================== -->
+  <!-- HEADER -->
+  <!-- ===================================================== -->
+
+  <div
+    class="mb-6 flex flex-col gap-4
+           sm:flex-row sm:items-center
+           sm:justify-between"
+  >
+
+    <div>
+
+      <h1
+        class="text-2xl font-bold text-gray-900
+               sm:text-3xl"
+      >
+        Income
+      </h1>
+
+      <p class="mt-1 text-sm text-gray-500">
+        Track and manage your income
+      </p>
+
+    </div>
+
+    <button
+      type="button"
+      (click)="openForm()"
+      class="rounded-lg bg-blue-600
+             px-4 py-2.5
+             text-sm font-semibold text-white
+             transition hover:bg-blue-700
+             focus:outline-none
+             focus:ring-2
+             focus:ring-blue-500
+             focus:ring-offset-2"
+    >
+      + Add Income
+    </button>
+
+  </div>
+
+
+  <!-- ===================================================== -->
+  <!-- SUCCESS MESSAGE -->
+  <!-- ===================================================== -->
+
+  @if (successMessage) {
+
+    <div
+      class="mb-5 rounded-lg border
+             border-green-200
+             bg-green-50 p-4"
+    >
+
+      <p class="text-sm font-medium text-green-700">
+        {{ successMessage }}
+      </p>
+
+    </div>
+
+  }
+
+
+  <!-- ===================================================== -->
+  <!-- ERROR MESSAGE -->
+  <!-- ===================================================== -->
+
+  @if (errorMessage) {
+
+    <div
+      class="mb-5 rounded-lg border
+             border-red-200
+             bg-red-50 p-4"
+    >
+
+      <p class="text-sm font-medium text-red-700">
+        {{ errorMessage }}
+      </p>
+
+    </div>
+
+  }
+
+
+  <!-- ===================================================== -->
+  <!-- ADD / EDIT FORM -->
+  <!-- ===================================================== -->
+
+  @if (showForm) {
+
+    <div
+      class="mb-6 rounded-xl bg-white
+             p-5 shadow-sm
+             ring-1 ring-gray-100
+             sm:p-6"
+    >
+
+      <!-- Form Header -->
+
+      <div
+        class="mb-6 flex items-center
+               justify-between"
+      >
+
+        <div>
+
+          <h2
+            class="text-lg font-semibold
+                   text-gray-900"
+          >
+            {{
+              editingIncomeId !== null
+                ? 'Edit Income'
+                : 'Add Income'
+            }}
+          </h2>
+
+          <p class="mt-1 text-sm text-gray-500">
+
+            {{
+              editingIncomeId !== null
+                ? 'Update your income details'
+                : 'Add a new income record'
+            }}
+
+          </p>
+
+        </div>
+
+        <button
+          type="button"
+          (click)="closeForm()"
+          class="flex h-9 w-9 items-center
+                 justify-center rounded-lg
+                 text-xl text-gray-400
+                 transition hover:bg-gray-100
+                 hover:text-gray-700"
+          aria-label="Close"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <!-- Form -->
+
+      <form
+        (submit)="$event.preventDefault(); saveIncome()"
+        class="grid grid-cols-1 gap-5
+               md:grid-cols-2"
+      >
+
+        <!-- ================================================= -->
+        <!-- CATEGORY -->
+        <!-- ================================================= -->
+
+        <div>
+
+          <label
+            for="category"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Category
+          </label>
+
+          <input
+            id="category"
+            type="text"
+            [(ngModel)]="form.category"
+            name="category"
+            placeholder="Salary"
+            autocomplete="off"
+            class="w-full rounded-lg border
+                   border-gray-300
+                   px-3 py-2.5
+                   text-sm text-gray-900
+                   outline-none
+                   transition
+                   placeholder:text-gray-400
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100"
+          />
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- AMOUNT -->
+        <!-- ================================================= -->
+
+        <div>
+
+          <label
+            for="amount"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Amount
+          </label>
+
+          <input
+            id="amount"
+            type="number"
+            [(ngModel)]="form.amount"
+            name="amount"
+            min="0.01"
+            step="0.01"
+            placeholder="50000"
+            class="w-full rounded-lg border
+                   border-gray-300
+                   px-3 py-2.5
+                   text-sm text-gray-900
+                   outline-none
+                   transition
+                   placeholder:text-gray-400
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100"
+          />
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- DATE -->
+        <!-- ================================================= -->
+
+        <div>
+
+          <label
+            for="incomeDate"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Income Date
+          </label>
+
+          <input
+            id="incomeDate"
+            type="date"
+            [(ngModel)]="form.incomeDate"
+            name="incomeDate"
+            class="w-full rounded-lg border
+                   border-gray-300
+                   px-3 py-2.5
+                   text-sm text-gray-900
+                   outline-none
+                   transition
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100"
+          />
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- DESCRIPTION -->
+        <!-- ================================================= -->
+
+        <div>
+
+          <label
+            for="description"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Description
+          </label>
+
+          <input
+            id="description"
+            type="text"
+            [(ngModel)]="form.description"
+            name="description"
+            placeholder="Monthly salary"
+            autocomplete="off"
+            class="w-full rounded-lg border
+                   border-gray-300
+                   px-3 py-2.5
+                   text-sm text-gray-900
+                   outline-none
+                   transition
+                   placeholder:text-gray-400
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100"
+          />
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- BUTTONS -->
+        <!-- ================================================= -->
+
+        <div
+          class="flex flex-col gap-3
+                 pt-2
+                 sm:flex-row
+                 sm:justify-end
+                 md:col-span-2"
+        >
+
+          <button
+            type="button"
+            (click)="closeForm()"
+            [disabled]="submitting"
+            class="rounded-lg border
+                   border-gray-300
+                   px-5 py-2.5
+                   text-sm font-medium
+                   text-gray-700
+                   transition
+                   hover:bg-gray-50
+                   disabled:cursor-not-allowed
+                   disabled:opacity-50"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            [disabled]="submitting"
+            class="rounded-lg bg-blue-600
+                   px-5 py-2.5
+                   text-sm font-semibold
+                   text-white
+                   transition hover:bg-blue-700
+                   focus:outline-none
+                   focus:ring-2
+                   focus:ring-blue-500
+                   focus:ring-offset-2
+                   disabled:cursor-not-allowed
+                   disabled:opacity-50"
+          >
+
+            @if (submitting) {
+
+              Saving...
+
+            } @else {
+
+              {{
+                editingIncomeId !== null
+                  ? 'Update Income'
+                  : 'Save Income'
+              }}
+
+            }
+
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  }
+
+
+  <!-- ===================================================== -->
+  <!-- INCOME HISTORY -->
+  <!-- ===================================================== -->
+
+  <div
+    class="overflow-hidden rounded-xl
+           bg-white shadow-sm
+           ring-1 ring-gray-100"
+  >
+
+    <!-- History Header -->
+
+    <div
+      class="border-b border-gray-100
+             p-5 sm:p-6"
+    >
+
+      <h2
+        class="text-lg font-semibold
+               text-gray-900"
+      >
+        Income History
+      </h2>
+
+      <p class="mt-1 text-sm text-gray-500">
+        Your recorded income transactions
+      </p>
+
+    </div>
+
+
+    <!-- =================================================== -->
+    <!-- LOADING -->
+    <!-- =================================================== -->
+
+    @if (loading) {
+
+      <div class="p-8 text-center">
+
+        <div
+          class="mx-auto h-8 w-8
+                 animate-spin rounded-full
+                 border-4 border-gray-200
+                 border-t-blue-600"
+        ></div>
+
+        <p class="mt-3 text-sm text-gray-500">
+          Loading income...
+        </p>
+
+      </div>
+
+    }
+
+
+    <!-- =================================================== -->
+    <!-- EMPTY -->
+    <!-- =================================================== -->
+
+    @else if (incomes.length === 0) {
+
+      <div class="p-8 text-center sm:p-12">
+
+        <div
+          class="mx-auto flex h-12 w-12
+                 items-center justify-center
+                 rounded-full bg-blue-50
+                 text-blue-600"
+        >
+          ₹
+        </div>
+
+        <p
+          class="mt-4 font-medium
+                 text-gray-900"
+        >
+          No income records found
+        </p>
+
+        <p class="mt-1 text-sm text-gray-500">
+          Start by adding your first income.
+        </p>
+
+        <button
+          type="button"
+          (click)="openForm()"
+          class="mt-5 rounded-lg
+                 bg-blue-600
+                 px-4 py-2.5
+                 text-sm font-semibold
+                 text-white
+                 hover:bg-blue-700"
+        >
+          + Add Income
+        </button>
+
+      </div>
+
+    }
+
+
+    <!-- =================================================== -->
+    <!-- DATA -->
+    <!-- =================================================== -->
+
+    @else {
+
+      <!-- ================================================= -->
+      <!-- DESKTOP TABLE -->
+      <!-- ================================================= -->
+
+      <div class="hidden overflow-x-auto md:block">
+
+        <table class="w-full text-left">
+
+          <thead
+            class="border-b border-gray-100
+                   bg-gray-50"
+          >
+
+            <tr>
+
+              <th
+                class="px-5 py-3
+                       text-xs font-semibold
+                       uppercase tracking-wide
+                       text-gray-500"
+              >
+                Category
+              </th>
+
+              <th
+                class="px-5 py-3
+                       text-xs font-semibold
+                       uppercase tracking-wide
+                       text-gray-500"
+              >
+                Amount
+              </th>
+
+              <th
+                class="px-5 py-3
+                       text-xs font-semibold
+                       uppercase tracking-wide
+                       text-gray-500"
+              >
+                Date
+              </th>
+
+              <th
+                class="px-5 py-3
+                       text-xs font-semibold
+                       uppercase tracking-wide
+                       text-gray-500"
+              >
+                Description
+              </th>
+
+              <th
+                class="px-5 py-3
+                       text-right
+                       text-xs font-semibold
+                       uppercase tracking-wide
+                       text-gray-500"
+              >
+                Actions
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody
+            class="divide-y divide-gray-100"
+          >
+
+            @for (
+              income of incomes;
+              track income.id
+            ) {
+
+              <tr
+                class="transition
+                       hover:bg-gray-50"
+              >
+
+                <!-- Category -->
+
+                <td class="px-5 py-4">
+
+                  <p
+                    class="font-medium
+                           text-gray-900"
+                  >
+                    {{ income.category }}
+                  </p>
+
+                </td>
+
+
+                <!-- Amount -->
+
+                <td class="px-5 py-4">
+
+                  <p
+                    class="font-semibold
+                           text-green-600"
+                  >
+                    ₹{{ income.amount | number:'1.0-2' }}
+                  </p>
+
+                </td>
+
+
+                <!-- Date -->
+
+                <td
+                  class="whitespace-nowrap
+                         px-5 py-4
+                         text-sm text-gray-600"
+                >
+                  {{ income.incomeDate }}
+                </td>
+
+
+                <!-- Description -->
+
+                <td
+                  class="max-w-xs px-5 py-4
+                         text-sm text-gray-600"
+                >
+                  <span class="block truncate">
+                    {{ income.description || '—' }}
+                  </span>
+                </td>
+
+
+                <!-- Actions -->
+
+                <td class="px-5 py-4">
+
+                  <div
+                    class="flex justify-end
+                           gap-3"
+                  >
+
+                    <button
+                      type="button"
+                      (click)="editIncome(income)"
+                      class="text-sm font-medium
+                             text-blue-600
+                             transition
+                             hover:text-blue-800"
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      type="button"
+                      (click)="deleteIncome(income.id)"
+                      class="text-sm font-medium
+                             text-red-600
+                             transition
+                             hover:text-red-800"
+                    >
+                      Delete
+                    </button>
+
+                  </div>
+
+                </td>
+
+              </tr>
+
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+
+      <!-- ================================================= -->
+      <!-- MOBILE CARDS -->
+      <!-- ================================================= -->
+
+      <div
+        class="divide-y divide-gray-100
+               md:hidden"
+      >
+
+        @for (
+          income of incomes;
+          track income.id
+        ) {
+
+          <div
+            class="p-5 transition
+                   hover:bg-gray-50"
+          >
+
+            <!-- Top -->
+
+            <div
+              class="flex items-start
+                     justify-between gap-4"
+            >
+
+              <div class="min-w-0">
+
+                <p
+                  class="truncate
+                         font-semibold
+                         text-gray-900"
+                >
+                  {{ income.category }}
+                </p>
+
+                <p
+                  class="mt-1 text-sm
+                         text-gray-500"
+                >
+                  {{ income.incomeDate }}
+                </p>
+
+              </div>
+
+              <p
+                class="shrink-0
+                       font-bold
+                       text-green-600"
+              >
+                ₹{{ income.amount | number:'1.0-2' }}
+              </p>
+
+            </div>
+
+
+            <!-- Description -->
+
+            @if (income.description) {
+
+              <p
+                class="mt-3 text-sm
+                       text-gray-600"
+              >
+                {{ income.description }}
+              </p>
+
+            }
+
+
+            <!-- Mobile Actions -->
+
+            <div
+              class="mt-4 flex items-center
+                     gap-4 border-t
+                     border-gray-100 pt-3"
+            >
+
+              <button
+                type="button"
+                (click)="editIncome(income)"
+                class="text-sm font-medium
+                       text-blue-600
+                       hover:text-blue-800"
+              >
+                Edit
+              </button>
+
+              <button
+                type="button"
+                (click)="deleteIncome(income.id)"
+                class="text-sm font-medium
+                       text-red-600
+                       hover:text-red-800"
+              >
+                Delete
+              </button>
+
+            </div>
+
+          </div>
+
+        }
+
+      </div>
+
+    }
+
+  </div>
+
+</div>

@@ -1,7 +1,6 @@
 package com.walletmapx.backend.repository;
 
 import com.walletmapx.backend.entity.MonthlySnapshot;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
@@ -12,6 +11,10 @@ public interface MonthlySnapshotRepository
         extends JpaRepository<MonthlySnapshot, Long> {
 
     List<MonthlySnapshot> findByUserIdOrderBySnapshotMonthDesc(
+            Long userId
+    );
+
+    List<MonthlySnapshot> findByUserIdOrderBySnapshotMonthAsc(
             Long userId
     );
 

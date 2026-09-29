@@ -1,0 +1,607 @@
+<div class="mx-auto w-full max-w-7xl">
+
+  <!-- Header -->
+  <div
+    class="mb-6 flex flex-col gap-4
+           sm:flex-row sm:items-center
+           sm:justify-between"
+  >
+
+    <div>
+
+      <h1
+        class="text-2xl font-bold text-gray-900
+               sm:text-3xl"
+      >
+        Expenses
+      </h1>
+
+      <p class="mt-1 text-sm text-gray-500">
+        Track and manage your expenses
+      </p>
+
+    </div>
+
+    <button
+      type="button"
+      (click)="openForm()"
+      class="rounded-lg bg-blue-600
+             px-4 py-2.5
+             text-sm font-semibold text-white
+             transition hover:bg-blue-700"
+    >
+      + Add Expense
+    </button>
+
+  </div>
+
+
+  <!-- Success -->
+  @if (successMessage) {
+
+    <div
+      class="mb-5 rounded-lg border
+             border-green-200
+             bg-green-50 p-4"
+    >
+
+      <p
+        class="text-sm font-medium
+               text-green-700"
+      >
+        {{ successMessage }}
+      </p>
+
+    </div>
+
+  }
+
+
+  <!-- Error -->
+  @if (errorMessage) {
+
+    <div
+      class="mb-5 rounded-lg border
+             border-red-200
+             bg-red-50 p-4"
+    >
+
+      <p
+        class="text-sm font-medium
+               text-red-700"
+      >
+        {{ errorMessage }}
+      </p>
+
+    </div>
+
+  }
+
+
+  <!-- Form -->
+  @if (showForm) {
+
+    <div
+      class="mb-6 rounded-xl bg-white
+             p-5 shadow-sm
+             ring-1 ring-gray-100"
+    >
+
+      <div
+        class="mb-5 flex items-center
+               justify-between"
+      >
+
+        <h2
+          class="text-lg font-semibold
+                 text-gray-900"
+        >
+          @if (editingExpenseId !== null) {
+            Edit Expense
+          } @else {
+            Add Expense
+          }
+        </h2>
+
+        <button
+          type="button"
+          (click)="closeForm()"
+          class="text-gray-400
+                 hover:text-gray-700"
+          aria-label="Close"
+        >
+          ✕
+        </button>
+
+      </div>
+
+
+      <form
+        (submit)="$event.preventDefault(); saveExpense()"
+        class="grid grid-cols-1 gap-5
+               md:grid-cols-2"
+      >
+
+        <!-- Category -->
+        <div>
+
+          <label
+            for="category"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Category
+          </label>
+
+          <input
+            id="category"
+            type="text"
+            [(ngModel)]="form.category"
+            name="category"
+            maxlength="50"
+            placeholder="Food"
+            class="w-full rounded-lg border
+                   border-gray-300 px-3 py-2.5
+                   text-sm outline-none
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100"
+          />
+
+        </div>
+
+
+        <!-- Amount -->
+        <div>
+
+          <label
+            for="amount"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Amount
+          </label>
+
+          <input
+            id="amount"
+            type="number"
+            [(ngModel)]="form.amount"
+            name="amount"
+            min="0.01"
+            step="0.01"
+            placeholder="500"
+            class="w-full rounded-lg border
+                   border-gray-300 px-3 py-2.5
+                   text-sm outline-none
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100"
+          />
+
+        </div>
+
+
+        <!-- Date -->
+        <div>
+
+          <label
+            for="expenseDate"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Expense Date
+          </label>
+
+          <input
+            id="expenseDate"
+            type="date"
+            [(ngModel)]="form.expenseDate"
+            name="expenseDate"
+            class="w-full rounded-lg border
+                   border-gray-300 px-3 py-2.5
+                   text-sm outline-none
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100"
+          />
+
+        </div>
+
+
+        <!-- Description -->
+        <div>
+
+          <label
+            for="description"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Description
+          </label>
+
+          <input
+            id="description"
+            type="text"
+            [(ngModel)]="form.description"
+            name="description"
+            maxlength="500"
+            placeholder="Lunch with friends"
+            class="w-full rounded-lg border
+                   border-gray-300 px-3 py-2.5
+                   text-sm outline-none
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100"
+          />
+
+        </div>
+
+
+        <!-- Buttons -->
+        <div
+          class="flex flex-col gap-3
+                 sm:flex-row
+                 md:col-span-2
+                 md:justify-end"
+        >
+
+          <button
+            type="button"
+            (click)="closeForm()"
+            class="rounded-lg border
+                   border-gray-300
+                   px-5 py-2.5
+                   text-sm font-medium
+                   text-gray-700
+                   hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            [disabled]="submitting"
+            class="rounded-lg bg-blue-600
+                   px-5 py-2.5
+                   text-sm font-semibold
+                   text-white
+                   hover:bg-blue-700
+                   disabled:cursor-not-allowed
+                   disabled:opacity-50"
+          >
+
+            @if (submitting) {
+              Saving...
+            } @else if (editingExpenseId !== null) {
+              Update Expense
+            } @else {
+              Save Expense
+            }
+
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  }
+
+
+  <!-- Expense History -->
+  <div
+    class="overflow-hidden rounded-xl
+           bg-white shadow-sm
+           ring-1 ring-gray-100"
+  >
+
+    <div
+      class="border-b border-gray-100 p-5"
+    >
+
+      <h2
+        class="text-lg font-semibold
+               text-gray-900"
+      >
+        Expense History
+      </h2>
+
+    </div>
+
+
+    <!-- Loading -->
+    @if (loading) {
+
+      <div class="p-6">
+
+        <p class="text-sm text-gray-500">
+          Loading expenses...
+        </p>
+
+      </div>
+
+    }
+
+
+    <!-- Empty -->
+    @else if (expenses.length === 0) {
+
+      <div class="p-8 text-center">
+
+        <p class="text-gray-500">
+          No expense records found.
+        </p>
+
+        <button
+          type="button"
+          (click)="openForm()"
+          class="mt-4 text-sm
+                 font-semibold text-blue-600
+                 hover:text-blue-700"
+        >
+          Add your first expense
+        </button>
+
+      </div>
+
+    }
+
+
+    <!-- Data -->
+    @else {
+
+      <!-- Desktop -->
+      <div
+        class="hidden overflow-x-auto
+               md:block"
+      >
+
+        <table class="w-full text-left">
+
+          <thead
+            class="border-b border-gray-100
+                   bg-gray-50"
+          >
+
+            <tr>
+
+              <th
+                class="px-5 py-3 text-xs
+                       font-semibold uppercase
+                       text-gray-500"
+              >
+                Category
+              </th>
+
+              <th
+                class="px-5 py-3 text-xs
+                       font-semibold uppercase
+                       text-gray-500"
+              >
+                Amount
+              </th>
+
+              <th
+                class="px-5 py-3 text-xs
+                       font-semibold uppercase
+                       text-gray-500"
+              >
+                Date
+              </th>
+
+              <th
+                class="px-5 py-3 text-xs
+                       font-semibold uppercase
+                       text-gray-500"
+              >
+                Description
+              </th>
+
+              <th
+                class="px-5 py-3 text-right
+                       text-xs font-semibold
+                       uppercase text-gray-500"
+              >
+                Actions
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody
+            class="divide-y divide-gray-100"
+          >
+
+            @for (
+              expense of expenses;
+              track expense.id
+            ) {
+
+              <tr
+                class="hover:bg-gray-50"
+              >
+
+                <td class="px-5 py-4">
+
+                  <p
+                    class="font-medium
+                           text-gray-900"
+                  >
+                    {{ expense.category }}
+                  </p>
+
+                </td>
+
+
+                <td class="px-5 py-4">
+
+                  <p
+                    class="font-semibold
+                           text-red-600"
+                  >
+                    ₹{{ expense.amount | number:'1.0-2' }}
+                  </p>
+
+                </td>
+
+
+                <td
+                  class="px-5 py-4
+                         text-sm text-gray-600"
+                >
+                  {{ expense.expenseDate }}
+                </td>
+
+
+                <td
+                  class="px-5 py-4
+                         text-sm text-gray-600"
+                >
+                  {{ expense.description || '—' }}
+                </td>
+
+
+                <td
+                  class="px-5 py-4"
+                >
+
+                  <div
+                    class="flex justify-end
+                           gap-2"
+                  >
+
+                    <button
+                      type="button"
+                      (click)="editExpense(expense)"
+                      class="rounded-lg px-3 py-1.5
+                             text-sm font-medium
+                             text-blue-600
+                             hover:bg-blue-50"
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      type="button"
+                      (click)="deleteExpense(expense.id)"
+                      class="rounded-lg px-3 py-1.5
+                             text-sm font-medium
+                             text-red-600
+                             hover:bg-red-50"
+                    >
+                      Delete
+                    </button>
+
+                  </div>
+
+                </td>
+
+              </tr>
+
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+
+      <!-- Mobile -->
+      <div
+        class="divide-y divide-gray-100
+               md:hidden"
+      >
+
+        @for (
+          expense of expenses;
+          track expense.id
+        ) {
+
+          <div class="p-5">
+
+            <div
+              class="flex items-start
+                     justify-between gap-4"
+            >
+
+              <div>
+
+                <p
+                  class="font-semibold
+                         text-gray-900"
+                >
+                  {{ expense.category }}
+                </p>
+
+                <p
+                  class="mt-1 text-sm
+                         text-gray-500"
+                >
+                  {{ expense.expenseDate }}
+                </p>
+
+              </div>
+
+
+              <p
+                class="font-bold text-red-600"
+              >
+                ₹{{ expense.amount | number:'1.0-2' }}
+              </p>
+
+            </div>
+
+
+            @if (expense.description) {
+
+              <p
+                class="mt-3 text-sm
+                       text-gray-600"
+              >
+                {{ expense.description }}
+              </p>
+
+            }
+
+
+            <div
+              class="mt-4 flex gap-2"
+            >
+
+              <button
+                type="button"
+                (click)="editExpense(expense)"
+                class="rounded-lg bg-blue-50
+                       px-3 py-2 text-sm
+                       font-medium text-blue-600"
+              >
+                Edit
+              </button>
+
+              <button
+                type="button"
+                (click)="deleteExpense(expense.id)"
+                class="rounded-lg bg-red-50
+                       px-3 py-2 text-sm
+                       font-medium text-red-600"
+              >
+                Delete
+              </button>
+
+            </div>
+
+          </div>
+
+        }
+
+      </div>
+
+    }
+
+  </div>
+
+</div>

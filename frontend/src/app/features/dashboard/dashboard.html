@@ -1,0 +1,316 @@
+
+<div class="mx-auto w-full max-w-7xl">
+
+  <!-- ===================================================== -->
+  <!-- HEADER -->
+  <!-- ===================================================== -->
+
+  <div class="mb-6">
+
+    <h1
+      class="text-2xl font-bold text-gray-900 sm:text-3xl"
+    >
+      Dashboard
+    </h1>
+
+    <p class="mt-1 text-sm text-gray-500">
+      Overview of your financial position
+    </p>
+
+  </div>
+
+
+  <!-- ===================================================== -->
+  <!-- ERROR -->
+  <!-- ===================================================== -->
+
+  @if (errorMessage) {
+
+    <div
+      class="mb-6 rounded-lg border
+             border-red-200 bg-red-50 p-4"
+    >
+
+      <p class="text-sm font-medium text-red-700">
+        {{ errorMessage }}
+      </p>
+
+    </div>
+
+  }
+
+
+  <!-- ===================================================== -->
+  <!-- LOADING -->
+  <!-- ===================================================== -->
+
+  @if (loading) {
+
+    <div
+      class="rounded-xl bg-white p-8
+             text-center shadow-sm
+             ring-1 ring-gray-100"
+    >
+
+      <p class="text-sm text-gray-500">
+        Loading dashboard...
+      </p>
+
+    </div>
+
+  }
+
+  @else {
+
+    <!-- =================================================== -->
+    <!-- FINANCIAL CARDS -->
+    <!-- =================================================== -->
+
+    <div
+      class="grid grid-cols-1 gap-5
+             sm:grid-cols-2
+             xl:grid-cols-3"
+    >
+
+      <!-- TOTAL ASSETS -->
+
+      <div
+        class="rounded-xl bg-white p-5
+               shadow-sm ring-1 ring-gray-100"
+      >
+
+        <p class="text-sm font-medium text-gray-500">
+          Total Assets
+        </p>
+
+        <p
+          class="mt-2 text-2xl font-bold
+                 text-gray-900"
+        >
+          ₹{{ dashboard?.totalAssets | number:'1.0-2' }}
+        </p>
+
+      </div>
+
+
+      <!-- INVESTMENTS -->
+
+      <div
+        class="rounded-xl bg-white p-5
+               shadow-sm ring-1 ring-gray-100"
+      >
+
+        <p class="text-sm font-medium text-gray-500">
+          Investments
+        </p>
+
+        <p
+          class="mt-2 text-2xl font-bold
+                 text-blue-600"
+        >
+          ₹{{ dashboard?.totalInvestments | number:'1.0-2' }}
+        </p>
+
+      </div>
+
+
+      <!-- LIABILITIES -->
+
+      <div
+        class="rounded-xl bg-white p-5
+               shadow-sm ring-1 ring-gray-100"
+      >
+
+        <p class="text-sm font-medium text-gray-500">
+          Total Liabilities
+        </p>
+
+        <p
+          class="mt-2 text-2xl font-bold
+                 text-red-600"
+        >
+          ₹{{ dashboard?.totalLiabilities | number:'1.0-2' }}
+        </p>
+
+      </div>
+
+
+      <!-- NET WORTH -->
+
+      <div
+        class="rounded-xl bg-white p-5
+               shadow-sm ring-1 ring-gray-100"
+      >
+
+        <p class="text-sm font-medium text-gray-500">
+          Net Worth
+        </p>
+
+        <p
+          class="mt-2 text-2xl font-bold
+                 text-green-600"
+        >
+          ₹{{ dashboard?.netWorth | number:'1.0-2' }}
+        </p>
+
+      </div>
+
+
+      <!-- TOTAL INCOME -->
+
+      <div
+        class="rounded-xl bg-white p-5
+               shadow-sm ring-1 ring-gray-100"
+      >
+
+        <p class="text-sm font-medium text-gray-500">
+          Total Income
+        </p>
+
+        <p
+          class="mt-2 text-2xl font-bold
+                 text-emerald-600"
+        >
+          ₹{{ dashboard?.totalIncome | number:'1.0-2' }}
+        </p>
+
+      </div>
+
+
+      <!-- TOTAL EXPENSES -->
+
+      <div
+        class="rounded-xl bg-white p-5
+               shadow-sm ring-1 ring-gray-100"
+      >
+
+        <p class="text-sm font-medium text-gray-500">
+          Total Expenses
+        </p>
+
+        <p
+          class="mt-2 text-2xl font-bold
+                 text-orange-600"
+        >
+          ₹{{ dashboard?.totalExpenses | number:'1.0-2' }}
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- =================================================== -->
+    <!-- NET WORTH GRAPH -->
+    <!-- =================================================== -->
+
+    <div
+      class="mt-6 rounded-xl bg-white
+             p-5 shadow-sm
+             ring-1 ring-gray-100"
+    >
+
+      <div class="mb-5">
+
+        <h2
+          class="text-lg font-semibold
+                 text-gray-900"
+        >
+          Net Worth Growth
+        </h2>
+
+        <p class="mt-1 text-sm text-gray-500">
+          Monthly net worth history
+        </p>
+
+      </div>
+
+
+      <!-- ================================================= -->
+      <!-- CHART CONTAINER -->
+      <!-- ================================================= -->
+
+      <div
+        class="relative h-80 w-full"
+      >
+
+        <!-- CANVAS IS ALWAYS IN DOM -->
+
+        <canvas
+          id="netWorthChart"
+          class="h-full w-full"
+        ></canvas>
+
+
+        <!-- GRAPH LOADING -->
+
+        @if (graphLoading) {
+
+          <div
+            class="absolute inset-0
+                   flex items-center
+                   justify-center
+                   bg-white"
+          >
+
+            <p class="text-sm text-gray-500">
+              Loading net worth graph...
+            </p>
+
+          </div>
+
+        }
+
+
+        <!-- GRAPH ERROR -->
+
+        @else if (graphErrorMessage) {
+
+          <div
+            class="absolute inset-0
+                   flex items-center
+                   justify-center
+                   bg-white"
+          >
+
+            <p class="text-sm text-red-600">
+              {{ graphErrorMessage }}
+            </p>
+
+          </div>
+
+        }
+
+
+        <!-- NO DATA -->
+
+        @else if (yearlyNetWorth.length === 0) {
+
+          <div
+            class="absolute inset-0
+                   flex flex-col
+                   items-center
+                   justify-center
+                   bg-white"
+          >
+
+            <p class="text-sm text-gray-500">
+              No net worth history available.
+            </p>
+
+            <p class="mt-1 text-xs text-gray-400">
+              Create monthly snapshots to see
+              your net worth graph.
+            </p>
+
+          </div>
+
+        }
+
+      </div>
+
+    </div>
+
+  }
+
+</div>

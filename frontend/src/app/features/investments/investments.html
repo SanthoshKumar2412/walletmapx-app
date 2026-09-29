@@ -1,0 +1,925 @@
+<div class="mx-auto w-full max-w-7xl">
+
+  <!-- Header -->
+  <div
+    class="mb-6 flex flex-col gap-4
+           sm:flex-row sm:items-center
+           sm:justify-between"
+  >
+
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 sm:text-3xl">
+        Investments
+      </h1>
+
+      <p class="mt-1 text-sm text-gray-500">
+        Track and manage your investments
+      </p>
+    </div>
+
+    <button
+      type="button"
+      (click)="openForm()"
+      class="rounded-lg bg-blue-600
+             px-4 py-2.5
+             text-sm font-semibold text-white
+             transition hover:bg-blue-700"
+    >
+      + Add Investment
+    </button>
+
+  </div>
+
+
+  <!-- Summary Cards -->
+  @if (!loading && investments.length > 0) {
+
+    <div
+      class="mb-6 grid grid-cols-1 gap-4
+             sm:grid-cols-2
+             lg:grid-cols-3"
+    >
+
+      <!-- Invested -->
+      <div
+        class="rounded-xl bg-white p-5 shadow-sm
+               ring-1 ring-gray-100"
+      >
+
+        <p class="text-sm text-gray-500">
+          Total Invested
+        </p>
+
+        <p class="mt-2 text-2xl font-bold text-gray-900">
+          ₹{{ totalInvested | number:'1.0-2' }}
+        </p>
+
+      </div>
+
+
+      <!-- Current Value -->
+      <div
+        class="rounded-xl bg-white p-5 shadow-sm
+               ring-1 ring-gray-100"
+      >
+
+        <p class="text-sm text-gray-500">
+          Current Value
+        </p>
+
+        <p class="mt-2 text-2xl font-bold text-blue-600">
+          ₹{{ totalCurrentValue | number:'1.0-2' }}
+        </p>
+
+      </div>
+
+
+      <!-- Profit / Loss -->
+      <div
+        class="rounded-xl bg-white p-5 shadow-sm
+               ring-1 ring-gray-100"
+      >
+
+        <p class="text-sm text-gray-500">
+          Profit / Loss
+        </p>
+
+        <p
+          class="mt-2 text-2xl font-bold"
+          [class.text-green-600]="totalProfitLoss >= 0"
+          [class.text-red-600]="totalProfitLoss < 0"
+        >
+          ₹{{ totalProfitLoss | number:'1.0-2' }}
+        </p>
+
+        <p
+          class="mt-1 text-sm"
+          [class.text-green-600]="totalProfitLoss >= 0"
+          [class.text-red-600]="totalProfitLoss < 0"
+        >
+          {{ profitLossPercentage | number:'1.2-2' }}%
+        </p>
+
+      </div>
+
+    </div>
+
+  }
+
+
+  <!-- Success Message -->
+  @if (successMessage) {
+
+    <div
+      class="mb-5 rounded-lg border
+             border-green-200
+             bg-green-50 p-4"
+    >
+
+      <p class="text-sm font-medium text-green-700">
+        {{ successMessage }}
+      </p>
+
+    </div>
+
+  }
+
+
+  <!-- Error Message -->
+  @if (errorMessage) {
+
+    <div
+      class="mb-5 rounded-lg border
+             border-red-200
+             bg-red-50 p-4"
+    >
+
+      <p class="text-sm font-medium text-red-700">
+        {{ errorMessage }}
+      </p>
+
+    </div>
+
+  }
+
+
+  <!-- Investment Form -->
+  @if (showForm) {
+
+    <div
+      class="mb-6 rounded-xl bg-white
+             p-5 shadow-sm
+             ring-1 ring-gray-100"
+    >
+
+      <!-- Form Header -->
+      <div
+        class="mb-5 flex items-center
+               justify-between"
+      >
+
+        <h2 class="text-lg font-semibold text-gray-900">
+
+          @if (editingInvestmentId !== null) {
+            Edit Investment
+          } @else {
+            Add Investment
+          }
+
+        </h2>
+
+        <button
+          type="button"
+          (click)="closeForm()"
+          class="text-gray-400
+                 transition hover:text-gray-700"
+          aria-label="Close"
+        >
+          ✕
+        </button>
+
+      </div>
+
+
+      <form
+        (submit)="$event.preventDefault(); saveInvestment()"
+        class="grid grid-cols-1 gap-5
+               md:grid-cols-2"
+      >
+
+        <!-- Name -->
+        <div>
+
+          <label
+            for="name"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Investment Name
+          </label>
+
+          <input
+            id="name"
+            type="text"
+            [(ngModel)]="form.name"
+            name="name"
+            placeholder="Reliance Industries"
+            class="w-full rounded-lg border
+                   border-gray-300 px-3 py-2.5
+                   text-sm outline-none
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100"
+          />
+
+        </div>
+
+
+        <!-- Investment Type -->
+        <div>
+
+          <label
+            for="investmentType"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Investment Type
+          </label>
+
+          <select
+            id="investmentType"
+            [(ngModel)]="form.investmentType"
+            name="investmentType"
+            class="w-full rounded-lg border
+                   border-gray-300 bg-white
+                   px-3 py-2.5
+                   text-sm outline-none
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100"
+          >
+
+            <option value="">
+              Select type
+            </option>
+
+            <option value="STOCK">
+              Stock
+            </option>
+
+            <option value="MUTUAL_FUND">
+              Mutual Fund
+            </option>
+
+            <option value="ETF">
+              ETF
+            </option>
+
+            <option value="BOND">
+              Bond
+            </option>
+
+            <option value="GOLD">
+              Gold
+            </option>
+
+            <option value="CRYPTO">
+              Cryptocurrency
+            </option>
+
+            <option value="FD">
+              Fixed Deposit
+            </option>
+
+            <option value="OTHER">
+              Other
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- Quantity -->
+        <div>
+
+          <label
+            for="quantity"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Quantity
+          </label>
+
+          <input
+            id="quantity"
+            type="number"
+            [(ngModel)]="form.quantity"
+            name="quantity"
+            min="0.01"
+            step="0.01"
+            placeholder="10"
+            class="w-full rounded-lg border
+                   border-gray-300 px-3 py-2.5
+                   text-sm outline-none
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100"
+          />
+
+        </div>
+
+
+        <!-- Buy Price -->
+        <div>
+
+          <label
+            for="buyPrice"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Buy Price
+          </label>
+
+          <input
+            id="buyPrice"
+            type="number"
+            [(ngModel)]="form.buyPrice"
+            name="buyPrice"
+            min="0.01"
+            step="0.01"
+            placeholder="2500"
+            class="w-full rounded-lg border
+                   border-gray-300 px-3 py-2.5
+                   text-sm outline-none
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100"
+          />
+
+        </div>
+
+
+        <!-- Invested Amount -->
+        <div>
+
+          <label
+            for="investedAmount"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Invested Amount
+          </label>
+
+          <input
+            id="investedAmount"
+            type="number"
+            [(ngModel)]="form.investedAmount"
+            name="investedAmount"
+            min="0.01"
+            step="0.01"
+            placeholder="25000"
+            class="w-full rounded-lg border
+                   border-gray-300 px-3 py-2.5
+                   text-sm outline-none
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100"
+          />
+
+        </div>
+
+
+        <!-- Current Value -->
+        <div>
+
+          <label
+            for="currentValue"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Current Value
+          </label>
+
+          <input
+            id="currentValue"
+            type="number"
+            [(ngModel)]="form.currentValue"
+            name="currentValue"
+            min="0"
+            step="0.01"
+            placeholder="27000"
+            class="w-full rounded-lg border
+                   border-gray-300 px-3 py-2.5
+                   text-sm outline-none
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100"
+          />
+
+        </div>
+
+
+        <!-- Investment Date -->
+        <div>
+
+          <label
+            for="investmentDate"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Investment Date
+          </label>
+
+          <input
+            id="investmentDate"
+            type="date"
+            [(ngModel)]="form.investmentDate"
+            name="investmentDate"
+            class="w-full rounded-lg border
+                   border-gray-300 px-3 py-2.5
+                   text-sm outline-none
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100"
+          />
+
+        </div>
+
+
+        <!-- Notes -->
+        <div class="md:col-span-2">
+
+          <label
+            for="notes"
+            class="mb-2 block text-sm
+                   font-medium text-gray-700"
+          >
+            Notes
+          </label>
+
+          <textarea
+            id="notes"
+            [(ngModel)]="form.notes"
+            name="notes"
+            rows="3"
+            placeholder="Investment notes..."
+            class="w-full rounded-lg border
+                   border-gray-300 px-3 py-2.5
+                   text-sm outline-none
+                   focus:border-blue-500
+                   focus:ring-2
+                   focus:ring-blue-100"
+          ></textarea>
+
+        </div>
+
+
+        <!-- Buttons -->
+        <div
+          class="flex flex-col gap-3
+                 sm:flex-row
+                 md:col-span-2
+                 md:justify-end"
+        >
+
+          <button
+            type="button"
+            (click)="closeForm()"
+            class="rounded-lg border
+                   border-gray-300
+                   px-5 py-2.5
+                   text-sm font-medium
+                   text-gray-700
+                   hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            [disabled]="submitting"
+            class="rounded-lg bg-blue-600
+                   px-5 py-2.5
+                   text-sm font-semibold
+                   text-white
+                   hover:bg-blue-700
+                   disabled:cursor-not-allowed
+                   disabled:opacity-50"
+          >
+
+            @if (submitting) {
+              Saving...
+            } @else if (editingInvestmentId !== null) {
+              Update Investment
+            } @else {
+              Save Investment
+            }
+
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  }
+
+
+  <!-- Investment List -->
+  <div
+    class="overflow-hidden rounded-xl
+           bg-white shadow-sm
+           ring-1 ring-gray-100"
+  >
+
+    <div
+      class="border-b border-gray-100 p-5"
+    >
+
+      <h2 class="text-lg font-semibold text-gray-900">
+        Investment History
+      </h2>
+
+    </div>
+
+
+    <!-- Loading -->
+    @if (loading) {
+
+      <div class="p-6">
+
+        <p class="text-sm text-gray-500">
+          Loading investments...
+        </p>
+
+      </div>
+
+    }
+
+
+    <!-- Empty -->
+    @else if (investments.length === 0) {
+
+      <div class="p-8 text-center">
+
+        <p class="text-gray-500">
+          No investment records found.
+        </p>
+
+        <button
+          type="button"
+          (click)="openForm()"
+          class="mt-4 text-sm
+                 font-semibold text-blue-600
+                 hover:text-blue-700"
+        >
+          Add your first investment
+        </button>
+
+      </div>
+
+    }
+
+
+    <!-- Data -->
+    @else {
+
+      <!-- Desktop Table -->
+      <div class="hidden overflow-x-auto md:block">
+
+        <table class="w-full text-left">
+
+          <thead
+            class="border-b border-gray-100
+                   bg-gray-50"
+          >
+
+            <tr>
+
+              <th
+                class="px-5 py-3 text-xs
+                       font-semibold uppercase
+                       text-gray-500"
+              >
+                Investment
+              </th>
+
+              <th
+                class="px-5 py-3 text-xs
+                       font-semibold uppercase
+                       text-gray-500"
+              >
+                Type
+              </th>
+
+              <th
+                class="px-5 py-3 text-xs
+                       font-semibold uppercase
+                       text-gray-500"
+              >
+                Invested
+              </th>
+
+              <th
+                class="px-5 py-3 text-xs
+                       font-semibold uppercase
+                       text-gray-500"
+              >
+                Current Value
+              </th>
+
+              <th
+                class="px-5 py-3 text-xs
+                       font-semibold uppercase
+                       text-gray-500"
+              >
+                P/L
+              </th>
+
+              <th
+                class="px-5 py-3 text-xs
+                       font-semibold uppercase
+                       text-gray-500"
+              >
+                Date
+              </th>
+
+              <th
+                class="px-5 py-3 text-xs
+                       font-semibold uppercase
+                       text-gray-500"
+              >
+                Actions
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody class="divide-y divide-gray-100">
+
+            @for (
+              investment of investments;
+              track investment.id
+            ) {
+
+              <tr class="hover:bg-gray-50">
+
+                <!-- Investment -->
+                <td class="px-5 py-4">
+
+                  <p class="font-medium text-gray-900">
+                    {{ investment.name }}
+                  </p>
+
+                </td>
+
+
+                <!-- Type -->
+                <td class="px-5 py-4">
+
+                  <span
+                    class="rounded-full bg-blue-50
+                           px-2.5 py-1
+                           text-xs font-medium
+                           text-blue-700"
+                  >
+                    {{ investment.investmentType }}
+                  </span>
+
+                </td>
+
+
+                <!-- Invested -->
+                <td class="px-5 py-4">
+
+                  <p class="font-semibold text-gray-900">
+                    ₹{{ investment.investedAmount | number:'1.0-2' }}
+                  </p>
+
+                </td>
+
+
+                <!-- Current -->
+                <td class="px-5 py-4">
+
+                  <p class="font-semibold text-blue-600">
+                    ₹{{ (investment.currentValue || 0) | number:'1.0-2' }}
+                  </p>
+
+                </td>
+
+
+                <!-- P/L -->
+                <td class="px-5 py-4">
+
+                  <p
+                    class="font-semibold"
+                    [class.text-green-600]="
+                      (investment.currentValue || 0)
+                      >= investment.investedAmount
+                    "
+                    [class.text-red-600]="
+                      (investment.currentValue || 0)
+                      < investment.investedAmount
+                    "
+                  >
+                    ₹{{
+                      (
+                        (investment.currentValue || 0)
+                        - investment.investedAmount
+                      ) | number:'1.0-2'
+                    }}
+                  </p>
+
+                </td>
+
+
+                <!-- Date -->
+                <td
+                  class="px-5 py-4
+                         text-sm text-gray-600"
+                >
+                  {{ investment.investmentDate || '—' }}
+                </td>
+
+
+                <!-- Actions -->
+                <td class="px-5 py-4">
+
+                  <div class="flex items-center gap-2">
+
+                    <button
+                      type="button"
+                      (click)="editInvestment(investment)"
+                      class="rounded-md bg-blue-50
+                             px-3 py-1.5
+                             text-xs font-semibold
+                             text-blue-600
+                             hover:bg-blue-100"
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      type="button"
+                      (click)="deleteInvestment(investment.id)"
+                      class="rounded-md bg-red-50
+                             px-3 py-1.5
+                             text-xs font-semibold
+                             text-red-600
+                             hover:bg-red-100"
+                    >
+                      Delete
+                    </button>
+
+                  </div>
+
+                </td>
+
+              </tr>
+
+            }
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+
+      <!-- Mobile Cards -->
+      <div
+        class="divide-y divide-gray-100 md:hidden"
+      >
+
+        @for (
+          investment of investments;
+          track investment.id
+        ) {
+
+          <div class="p-5">
+
+            <div
+              class="flex items-start
+                     justify-between gap-4"
+            >
+
+              <div>
+
+                <p class="font-semibold text-gray-900">
+                  {{ investment.name }}
+                </p>
+
+                <p
+                  class="mt-1 text-xs
+                         text-gray-500"
+                >
+                  {{ investment.investmentType }}
+                </p>
+
+              </div>
+
+              <p class="font-bold text-blue-600">
+                ₹{{ (investment.currentValue || 0) | number:'1.0-2' }}
+              </p>
+
+            </div>
+
+
+            <div
+              class="mt-4 grid grid-cols-2
+                     gap-3 text-sm"
+            >
+
+              <div>
+
+                <p class="text-gray-500">
+                  Invested
+                </p>
+
+                <p class="font-semibold text-gray-900">
+                  ₹{{ investment.investedAmount | number:'1.0-2' }}
+                </p>
+
+              </div>
+
+
+              <div>
+
+                <p class="text-gray-500">
+                  Profit / Loss
+                </p>
+
+                <p
+                  class="font-semibold"
+                  [class.text-green-600]="
+                    (investment.currentValue || 0)
+                    >= investment.investedAmount
+                  "
+                  [class.text-red-600]="
+                    (investment.currentValue || 0)
+                    < investment.investedAmount
+                  "
+                >
+                  ₹{{
+                    (
+                      (investment.currentValue || 0)
+                      - investment.investedAmount
+                    ) | number:'1.0-2'
+                  }}
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div class="mt-3">
+
+              <p class="text-xs text-gray-500">
+                Investment Date
+              </p>
+
+              <p class="text-sm text-gray-700">
+                {{ investment.investmentDate || '—' }}
+              </p>
+
+            </div>
+
+
+            @if (investment.notes) {
+
+              <p
+                class="mt-3 text-sm
+                       text-gray-600"
+              >
+                {{ investment.notes }}
+              </p>
+
+            }
+
+
+            <!-- Mobile Actions -->
+            <div class="mt-4 flex gap-2">
+
+              <button
+                type="button"
+                (click)="editInvestment(investment)"
+                class="rounded-md bg-blue-50
+                       px-3 py-1.5
+                       text-xs font-semibold
+                       text-blue-600
+                       hover:bg-blue-100"
+              >
+                Edit
+              </button>
+
+              <button
+                type="button"
+                (click)="deleteInvestment(investment.id)"
+                class="rounded-md bg-red-50
+                       px-3 py-1.5
+                       text-xs font-semibold
+                       text-red-600
+                       hover:bg-red-100"
+              >
+                Delete
+              </button>
+
+            </div>
+
+          </div>
+
+        }
+
+      </div>
+
+    }
+
+  </div>
+
+</div>

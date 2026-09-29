@@ -1,0 +1,402 @@
+<div class="mx-auto w-full max-w-7xl">
+
+  <!-- Header -->
+  <div class="mb-6">
+
+    <h1 class="text-2xl font-bold text-gray-900 sm:text-3xl">
+      Statistics
+    </h1>
+
+    <p class="mt-1 text-sm text-gray-500">
+      Analyze your financial performance
+    </p>
+
+  </div>
+
+
+  <!-- Error -->
+  @if (errorMessage) {
+
+    <div class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+
+      <p class="text-sm font-medium text-red-700">
+        {{ errorMessage }}
+      </p>
+
+    </div>
+
+  }
+
+
+  <!-- Loading -->
+  @if (loading) {
+
+    <div class="rounded-xl bg-white p-8 text-center shadow-sm">
+
+      <p class="text-sm text-gray-500">
+        Loading statistics...
+      </p>
+
+    </div>
+
+  }
+
+
+  @else if (statistics) {
+
+    <!-- Financial Summary -->
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+
+      <!-- Income -->
+      <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
+
+        <p class="text-sm text-gray-500">
+          Total Income
+        </p>
+
+        <p class="mt-2 text-2xl font-bold text-green-600">
+          ₹{{ totalIncome | number:'1.0-2' }}
+        </p>
+
+      </div>
+
+
+      <!-- Expenses -->
+      <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
+
+        <p class="text-sm text-gray-500">
+          Total Expenses
+        </p>
+
+        <p class="mt-2 text-2xl font-bold text-red-600">
+          ₹{{ totalExpenses | number:'1.0-2' }}
+        </p>
+
+      </div>
+
+
+      <!-- Savings -->
+      <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
+
+        <p class="text-sm text-gray-500">
+          Total Savings
+        </p>
+
+        <p class="mt-2 text-2xl font-bold text-blue-600">
+          ₹{{ totalSavings | number:'1.0-2' }}
+        </p>
+
+      </div>
+
+
+      <!-- Savings Rate -->
+      <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
+
+        <p class="text-sm text-gray-500">
+          Savings Rate
+        </p>
+
+        <p class="mt-2 text-2xl font-bold text-gray-900">
+          {{ savingsRate | number:'1.0-2' }}%
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- Net Worth -->
+    <div class="mt-6 rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+
+      <p class="text-sm text-gray-500">
+        Net Worth
+      </p>
+
+      <p class="mt-2 text-3xl font-bold text-gray-900">
+        ₹{{ netWorth | number:'1.0-2' }}
+      </p>
+
+      <div class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
+
+        <div class="rounded-lg bg-gray-50 p-4">
+
+          <p class="text-sm text-gray-500">
+            Assets
+          </p>
+
+          <p class="mt-1 font-semibold text-gray-900">
+            ₹{{ totalAssets | number:'1.0-2' }}
+          </p>
+
+        </div>
+
+
+        <div class="rounded-lg bg-gray-50 p-4">
+
+          <p class="text-sm text-gray-500">
+            Investments
+          </p>
+
+          <p class="mt-1 font-semibold text-gray-900">
+            ₹{{ totalInvestments | number:'1.0-2' }}
+          </p>
+
+        </div>
+
+
+        <div class="rounded-lg bg-gray-50 p-4">
+
+          <p class="text-sm text-gray-500">
+            Liabilities
+          </p>
+
+          <p class="mt-1 font-semibold text-gray-900">
+            ₹{{ totalLiabilities | number:'1.0-2' }}
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- Monthly Trend -->
+    <div class="mt-6 rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+
+      <div
+        class="mb-5 flex flex-col gap-3
+               sm:flex-row sm:items-center
+               sm:justify-between"
+      >
+
+        <div>
+
+          <h2 class="text-lg font-semibold text-gray-900">
+            Monthly Trend
+          </h2>
+
+          <p class="text-sm text-gray-500">
+            Income, expenses and savings
+          </p>
+
+        </div>
+
+
+        <select
+          [value]="selectedMonths"
+          (change)="changeMonths(+$any($event.target).value)"
+          class="rounded-lg border border-gray-300
+                 px-3 py-2 text-sm
+                 outline-none focus:border-blue-500"
+        >
+
+          <option value="3">
+            Last 3 months
+          </option>
+
+          <option value="6">
+            Last 6 months
+          </option>
+
+          <option value="12">
+            Last 12 months
+          </option>
+
+          <option value="24">
+            Last 24 months
+          </option>
+
+        </select>
+
+      </div>
+
+
+      @if (trend.length === 0) {
+
+        <div class="py-8 text-center">
+
+          <p class="text-sm text-gray-500">
+            No trend data available.
+          </p>
+
+        </div>
+
+      }
+
+      @else {
+
+        <div class="overflow-x-auto">
+
+          <table class="w-full min-w-[600px] text-left">
+
+            <thead class="border-b border-gray-100 bg-gray-50">
+
+              <tr>
+
+                <th class="px-4 py-3 text-xs font-semibold uppercase text-gray-500">
+                  Month
+                </th>
+
+                <th class="px-4 py-3 text-xs font-semibold uppercase text-gray-500">
+                  Income
+                </th>
+
+                <th class="px-4 py-3 text-xs font-semibold uppercase text-gray-500">
+                  Expenses
+                </th>
+
+                <th class="px-4 py-3 text-xs font-semibold uppercase text-gray-500">
+                  Savings
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody class="divide-y divide-gray-100">
+
+              @for (item of trend; track item.month) {
+
+                <tr class="hover:bg-gray-50">
+
+                  <td class="px-4 py-4 font-medium text-gray-900">
+                    {{ item.month }}
+                  </td>
+
+                  <td class="px-4 py-4 font-semibold text-green-600">
+                    ₹{{ item.totalIncome | number:'1.0-2' }}
+                  </td>
+
+                  <td class="px-4 py-4 font-semibold text-red-600">
+                    ₹{{ item.totalExpenses | number:'1.0-2' }}
+                  </td>
+
+                  <td
+                    class="px-4 py-4 font-semibold"
+                    [class.text-green-600]="item.savings >= 0"
+                    [class.text-red-600]="item.savings < 0"
+                  >
+                    ₹{{ item.savings | number:'1.0-2' }}
+                  </td>
+
+                </tr>
+
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      }
+
+    </div>
+
+
+    <!-- Category Breakdown -->
+    <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+
+
+      <!-- Income Categories -->
+      <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+
+        <h2 class="mb-4 text-lg font-semibold text-gray-900">
+          Income by Category
+        </h2>
+
+        @if (incomeCategories.length === 0) {
+
+          <p class="text-sm text-gray-500">
+            No income category data.
+          </p>
+
+        }
+
+        @else {
+
+          <div class="space-y-3">
+
+            @for (
+              category of incomeCategories;
+              track category[0]
+            ) {
+
+              <div
+                class="flex items-center justify-between
+                       rounded-lg bg-gray-50 p-3"
+              >
+
+                <span class="text-sm font-medium text-gray-700">
+                  {{ category[0] }}
+                </span>
+
+                <span class="text-sm font-semibold text-green-600">
+                  ₹{{ category[1] | number:'1.0-2' }}
+                </span>
+
+              </div>
+
+            }
+
+          </div>
+
+        }
+
+      </div>
+
+
+      <!-- Expense Categories -->
+      <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+
+        <h2 class="mb-4 text-lg font-semibold text-gray-900">
+          Expenses by Category
+        </h2>
+
+        @if (expenseCategories.length === 0) {
+
+          <p class="text-sm text-gray-500">
+            No expense category data.
+          </p>
+
+        }
+
+        @else {
+
+          <div class="space-y-3">
+
+            @for (
+              category of expenseCategories;
+              track category[0]
+            ) {
+
+              <div
+                class="flex items-center justify-between
+                       rounded-lg bg-gray-50 p-3"
+              >
+
+                <span class="text-sm font-medium text-gray-700">
+                  {{ category[0] }}
+                </span>
+
+                <span class="text-sm font-semibold text-red-600">
+                  ₹{{ category[1] | number:'1.0-2' }}
+                </span>
+
+              </div>
+
+            }
+
+          </div>
+
+        }
+
+      </div>
+
+    </div>
+
+  }
+
+</div>

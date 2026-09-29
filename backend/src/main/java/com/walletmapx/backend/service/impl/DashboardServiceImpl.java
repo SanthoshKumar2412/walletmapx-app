@@ -2,7 +2,10 @@ package com.walletmapx.backend.service.impl;
 
 import com.walletmapx.backend.dto.dashboard.DashboardResponse;
 import com.walletmapx.backend.dto.dashboard.MonthlyDashboardResponse;
+import com.walletmapx.backend.dto.dashboard.YearlyNetWorthItem;
+import com.walletmapx.backend.entity.MonthlySnapshot;
 import com.walletmapx.backend.exception.BadRequestException;
+import com.walletmapx.backend.repository.MonthlySnapshotRepository;
 import com.walletmapx.backend.service.DashboardService;
 import com.walletmapx.backend.service.FinancialAggregationService;
 
@@ -14,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +25,9 @@ import java.time.YearMonth;
 public class DashboardServiceImpl implements DashboardService {
 
     private final FinancialAggregationService financialAggregationService;
+
+    private final MonthlySnapshotRepository monthlySnapshotRepository;
+
 
     // =========================================================
     // MAIN DASHBOARD
@@ -45,9 +52,10 @@ public class DashboardServiceImpl implements DashboardService {
                 financialAggregationService.totalInvestments(userId);
 
         // Net Worth = Assets + Investments - Liabilities
-        BigDecimal netWorth = totalAssets
-                .add(totalInvestments)
-                .subtract(totalLiabilities);
+        BigDecimal netWorth =
+                totalAssets
+                        .add(totalInvestments)
+                        .subtract(totalLiabilities);
 
         return new DashboardResponse(
                 totalAssets,
@@ -59,6 +67,7 @@ public class DashboardServiceImpl implements DashboardService {
         );
     }
 
+
     // =========================================================
     // MONTHLY DASHBOARD
     // =========================================================
@@ -67,8 +76,6 @@ public class DashboardServiceImpl implements DashboardService {
     public MonthlyDashboardResponse getMonthlyDashboard(
             Long userId,
             String month) {
-
-        // Expected format: 2026-09
 
         YearMonth yearMonth;
 
@@ -80,8 +87,11 @@ public class DashboardServiceImpl implements DashboardService {
             );
         }
 
-        LocalDate startDate = yearMonth.atDay(1);
-        LocalDate endDate = yearMonth.atEndOfMonth();
+        LocalDate startDate =
+                yearMonth.atDay(1);
+
+        LocalDate endDate =
+                yearMonth.atEndOfMonth();
 
         BigDecimal totalIncome =
                 financialAggregationService.totalIncomeBetween(
@@ -100,8 +110,6 @@ public class DashboardServiceImpl implements DashboardService {
         BigDecimal savings =
                 totalIncome.subtract(totalExpenses);
 
-        // Investments are not monthly income/expense transactions,
-        // so we return the user's current total investment value.
         BigDecimal totalInvestments =
                 financialAggregationService.totalInvestments(userId);
 
@@ -112,5 +120,48 @@ public class DashboardServiceImpl implements DashboardService {
                 savings,
                 totalInvestments
         );
+    }
+
+
+    // =========================================================
+    // NET WORTH HISTORY
+    // =========================================================
+
+    @Override
+    public List<YearlyNetWorthItem> getYearlyNetWorth(
+            Long userId) {
+
+        return monthlySnapshotRepository
+                .findByUserIdOrderBySnapshotMonthAsc(userId)
+                .stream()
+                .map(this::mapToYearlyNetWorth)
+                .toList();
+    }
+
+
+    // =========================================================
+    // MAP SNAPSHOT -> GRAPH ITEM
+    // =========================================================
+
+    private YearlyNetWorthItem mapToYearlyNetWorth(
+            MonthlySnapshot snapshot) {
+
+        return new YearlyNetWorthItem(
+                snapshot.getSnapshotMonth(),
+                safeAmount(snapshot.getNetWorth())
+        );
+    }
+
+
+    // =========================================================
+    // NULL SAFETY
+    // =========================================================
+
+    private BigDecimal safeAmount(
+            BigDecimal amount) {
+
+        return amount != null
+                ? amount
+                : BigDecimal.ZERO;
     }
 }

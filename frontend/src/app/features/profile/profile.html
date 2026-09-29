@@ -1,0 +1,192 @@
+<div class="mx-auto max-w-3xl">
+
+  <!-- Page Title -->
+  <h1 class="mb-6 text-2xl font-bold text-gray-900">
+    My Profile
+  </h1>
+
+  <!-- Loading -->
+  @if (loading) {
+
+    <div class="rounded-xl bg-white p-6 shadow-sm">
+
+      <p class="text-gray-500">
+        Loading profile...
+      </p>
+
+    </div>
+
+  }
+
+  <!-- Error -->
+  @else if (errorMessage) {
+
+    <div class="rounded-xl bg-white p-6 shadow-sm">
+
+      <p class="text-red-600">
+        {{ errorMessage }}
+      </p>
+
+    </div>
+
+  }
+
+  <!-- Profile -->
+  @else if (profile) {
+
+    <div class="rounded-xl bg-white p-6 shadow-sm">
+
+      <!-- ================================================= -->
+      <!-- PROFILE IMAGE -->
+      <!-- ================================================= -->
+
+      <div class="mb-6 flex justify-center">
+
+        @if (profile.profileImageUrl) {
+
+          <img
+            [src]="'http://localhost:8082' + profile.profileImageUrl"
+            alt="Profile"
+            class="h-28 w-28 rounded-full object-cover"
+          />
+
+        }
+
+        @else {
+
+          <div
+            class="flex h-28 w-28 items-center justify-center
+                   rounded-full bg-blue-100
+                   text-4xl font-bold text-blue-600"
+          >
+            {{ profile.name.charAt(0).toUpperCase() }}
+          </div>
+
+        }
+
+      </div>
+
+
+      <!-- ================================================= -->
+      <!-- CHANGE PROFILE IMAGE -->
+      <!-- ================================================= -->
+
+      <div class="mb-8">
+
+        <label
+          for="profileImage"
+          class="mb-2 block text-sm font-medium text-gray-700"
+        >
+          Change profile image
+        </label>
+
+        <input
+          id="profileImage"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          (change)="onFileSelected($event)"
+          class="block w-full rounded-lg border
+                 border-gray-300 bg-white text-sm
+                 text-gray-700
+
+                 file:mr-4
+                 file:rounded-lg
+                 file:border-0
+                 file:bg-blue-600
+                 file:px-4
+                 file:py-2
+                 file:text-sm
+                 file:font-medium
+                 file:text-white
+
+                 hover:file:bg-blue-700"
+        />
+
+        <!-- Selected File -->
+        @if (selectedFile) {
+
+          <div class="mt-3">
+
+            <p class="text-sm text-gray-500">
+              Selected:
+              <span class="font-medium text-gray-700">
+                {{ selectedFile.name }}
+              </span>
+            </p>
+
+            <button
+              type="button"
+              (click)="uploadImage()"
+              [disabled]="uploading"
+              class="mt-3 rounded-lg
+                     bg-blue-600 px-5 py-2
+                     text-sm font-medium text-white
+                     transition
+                     hover:bg-blue-700
+                     disabled:cursor-not-allowed
+                     disabled:opacity-50"
+            >
+
+              @if (uploading) {
+                Uploading...
+              }
+              @else {
+                Upload Image
+              }
+
+            </button>
+
+          </div>
+
+        }
+
+        <!-- Upload Message -->
+        @if (uploadMessage) {
+
+          <p class="mt-3 text-sm text-gray-600">
+            {{ uploadMessage }}
+          </p>
+
+        }
+
+      </div>
+
+
+      <!-- ================================================= -->
+      <!-- NAME -->
+      <!-- ================================================= -->
+
+      <div class="mb-5">
+
+        <p class="mb-1 text-sm text-gray-500">
+          Name
+        </p>
+
+        <p class="text-lg font-semibold text-gray-900">
+          {{ profile.name }}
+        </p>
+
+      </div>
+
+
+      <!-- ================================================= -->
+      <!-- EMAIL -->
+      <!-- ================================================= -->
+
+      <div>
+
+        <p class="mb-1 text-sm text-gray-500">
+          Email
+        </p>
+
+        <p class="text-lg font-semibold text-gray-900">
+          {{ profile.email }}
+        </p>
+
+      </div>
+
+    </div>
+
+  }
+
+</div>
