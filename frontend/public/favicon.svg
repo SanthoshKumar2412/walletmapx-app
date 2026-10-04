@@ -1,0 +1,114 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="100 130 500 460"
+  width="512"
+  height="512"
+>
+  <defs>
+    <linearGradient id="body" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0aa2f7"/>
+      <stop offset="0.45" stop-color="#0a5fc9"/>
+      <stop offset="1" stop-color="#08308f"/>
+    </linearGradient>
+
+    <linearGradient id="card" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#0a6fd0"/>
+      <stop offset="0.55" stop-color="#12a6a0"/>
+      <stop offset="1" stop-color="#4ee08a"/>
+    </linearGradient>
+
+    <linearGradient id="clasp" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a97c9"/>
+      <stop offset="1" stop-color="#0a56b8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Wallet top -->
+  <path
+    d="M165,262
+       C165,242 180,231 202,224
+       L438,143
+       C468,133 492,152 497,186
+       L498,192
+       L246,266 Z"
+    fill="url(#card)"
+  />
+
+  <!-- Wallet card -->
+  <path
+    d="M250,267
+       L482,206
+       C512,200 531,219 533,249
+       L533,270 Z"
+    fill="url(#card)"
+    stroke="#fff"
+    stroke-width="10"
+    stroke-linejoin="round"
+  />
+
+  <!-- Main wallet -->
+  <rect
+    x="130"
+    y="280"
+    width="418"
+    height="290"
+    rx="50"
+    fill="url(#body)"
+    stroke="#fff"
+    stroke-width="10"
+  />
+
+  <!-- Wallet clasp -->
+  <rect
+    x="440"
+    y="349"
+    width="136"
+    height="106"
+    rx="30"
+    fill="url(#clasp)"
+    stroke="#fff"
+    stroke-width="12"
+  />
+
+  <circle
+    cx="493"
+    cy="410"
+    r="21"
+    fill="#fff"
+  />
+
+  <circle
+    cx="493"
+    cy="410"
+    r="7"
+    fill="#0a6fb8"
+  />
+
+  <!-- Growth bars -->
+  <g fill="#fff">
+    <rect x="213" y="468" width="52" height="57" rx="7"/>
+    <rect x="277" y="442" width="44" height="83" rx="7"/>
+    <rect x="338" y="405" width="44" height="120" rx="7"/>
+  </g>
+
+  <!-- Growth line -->
+  <path
+    d="M208,443
+       Q292,412 362,360"
+    fill="none"
+    stroke="#fff"
+    stroke-width="14"
+    stroke-linecap="round"
+  />
+
+  <!-- Arrow -->
+  <path
+    d="M388,343
+       L338,350
+       L374,386 Z"
+    fill="#fff"
+    stroke="#fff"
+    stroke-width="6"
+    stroke-linejoin="round"
+  />
+</svg>

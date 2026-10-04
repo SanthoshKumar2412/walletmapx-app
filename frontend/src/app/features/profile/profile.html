@@ -45,7 +45,7 @@
         @if (profile.profileImageUrl) {
 
           <img
-            [src]="'http://localhost:8082' + profile.profileImageUrl"
+            [src]="backendUrl + profile.profileImageUrl"
             alt="Profile"
             class="h-28 w-28 rounded-full object-cover"
           />

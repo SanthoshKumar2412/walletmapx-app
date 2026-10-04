@@ -14,6 +14,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import io.jsonwebtoken.JwtException;
+
 import java.io.IOException;
 
 @Component
@@ -32,6 +34,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String authorizationHeader =
                 request.getHeader("Authorization");
 
+        // =========================================================
+        // NO TOKEN
+        // =========================================================
+
         if (authorizationHeader == null ||
                 !authorizationHeader.startsWith("Bearer ")) {
 
@@ -42,40 +48,68 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token =
                 authorizationHeader.substring(7);
 
-        String email = jwtService.extractEmail(token);
-        Long userId = jwtService.extractUserId(token);
+        // =========================================================
+        // JWT VALIDATION
+        // =========================================================
 
-        if (email != null &&
-                userId != null &&
-                SecurityContextHolder.getContext()
-                        .getAuthentication() == null) {
+        try {
 
-            if (jwtService.isTokenValid(token, email)) {
+            String email =
+                    jwtService.extractEmail(token);
 
-                UserDetails userDetails =
-                        org.springframework.security.core.userdetails.User
-                                .withUsername(String.valueOf(userId))
-                                .password("")
-                                .authorities("USER")
-                                .build();
+            Long userId =
+                    jwtService.extractUserId(token);
 
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
+            if (email != null &&
+                    userId != null &&
+                    SecurityContextHolder
+                            .getContext()
+                            .getAuthentication() == null) {
 
-                authentication.setDetails(
-                        new WebAuthenticationDetailsSource()
-                                .buildDetails(request)
-                );
+                if (jwtService.isTokenValid(token, email)) {
 
-                SecurityContextHolder
-                        .getContext()
-                        .setAuthentication(authentication);
+                    UserDetails userDetails =
+                            org.springframework.security.core.userdetails.User
+                                    .withUsername(String.valueOf(userId))
+                                    .password("")
+                                    .authorities("USER")
+                                    .build();
+
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
+
+                    authentication.setDetails(
+                            new WebAuthenticationDetailsSource()
+                                    .buildDetails(request)
+                    );
+
+                    SecurityContextHolder
+                            .getContext()
+                            .setAuthentication(authentication);
+                }
             }
+
+        } catch (JwtException | IllegalArgumentException e) {
+
+            // Clear any existing authentication
+            SecurityContextHolder.clearContext();
+
+            // Return 401 Unauthorized
+            response.sendError(
+                    HttpServletResponse.SC_UNAUTHORIZED,
+                    "Invalid or expired token"
+            );
+
+            return;
         }
+
+        // =========================================================
+        // CONTINUE REQUEST
+        // =========================================================
 
         filterChain.doFilter(request, response);
     }

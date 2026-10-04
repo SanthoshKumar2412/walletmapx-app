@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
+import { todayLocal } from '../../core/utils/date';
 import {
   InvestmentRequest,
   InvestmentResponse,
@@ -34,6 +34,30 @@ export class Investments implements OnInit {
 
   showForm = false;
 
+  // =========================================================
+  // INVESTMENT TYPE LABELS
+  // =========================================================
+
+  /** Friendly names for the stored type codes */
+  private readonly typeLabels: Record<string, string> = {
+    STOCK: 'Stock',
+    MUTUAL_FUND: 'Mutual Fund',
+    ETF: 'ETF',
+    BOND: 'Bond',
+    GOLD: 'Gold',
+    CRYPTO: 'Cryptocurrency',
+    FD: 'Fixed Deposit',
+    OTHER: 'Other'
+  };
+
+  typeLabel(type: string): string {
+    return this.typeLabels[type] ?? type;
+  }
+
+  // =========================================================
+  // FORM
+  // =========================================================
+
   form: InvestmentRequest = {
     name: '',
     investmentType: '',
@@ -41,9 +65,13 @@ export class Investments implements OnInit {
     buyPrice: 0,
     investedAmount: 0,
     currentValue: null,
-    investmentDate: this.getToday(),
+    investmentDate: todayLocal(),
     notes: ''
   };
+
+  // =========================================================
+  // INIT
+  // =========================================================
 
   ngOnInit(): void {
     this.loadInvestments();
@@ -380,23 +408,10 @@ export class Investments implements OnInit {
 
       currentValue: null,
 
-      investmentDate: this.getToday(),
+      investmentDate: todayLocal(),
 
       notes: ''
     };
-  }
-
-  // =========================================================
-  // TODAY
-  // =========================================================
-
-  private getToday(): string {
-
-    const today = new Date();
-
-    return today
-      .toISOString()
-      .split('T')[0];
   }
 
   // =========================================================

@@ -311,18 +311,14 @@ export class Liabilities implements OnInit {
   private validateForm(): boolean {
 
     if (!this.form.name.trim()) {
-
       this.errorMessage =
         'Liability name is required.';
-
       return false;
     }
 
     if (!this.form.liabilityType.trim()) {
-
       this.errorMessage =
         'Liability type is required.';
-
       return false;
     }
 
@@ -330,43 +326,35 @@ export class Liabilities implements OnInit {
       !this.form.principalAmount ||
       this.form.principalAmount <= 0
     ) {
-
       this.errorMessage =
         'Principal amount must be greater than 0.';
-
       return false;
     }
 
     if (
-      !this.form.outstandingAmount ||
-      this.form.outstandingAmount <= 0
+      this.form.outstandingAmount == null ||
+      this.form.outstandingAmount < 0
     ) {
-
       this.errorMessage =
-        'Outstanding amount must be greater than 0.';
-
+        'Outstanding amount cannot be negative.';
       return false;
     }
 
     if (
-      !this.form.interestRate ||
-      this.form.interestRate <= 0
+      this.form.interestRate == null ||
+      this.form.interestRate < 0
     ) {
-
       this.errorMessage =
-        'Interest rate must be greater than 0.';
-
+        'Interest rate cannot be negative.';
       return false;
     }
 
     if (
-      !this.form.monthlyEmi ||
-      this.form.monthlyEmi <= 0
+      this.form.monthlyEmi == null ||
+      this.form.monthlyEmi < 0
     ) {
-
       this.errorMessage =
-        'Monthly EMI must be greater than 0.';
-
+        'Monthly EMI cannot be negative.';
       return false;
     }
 
@@ -409,7 +397,8 @@ export class Liabilities implements OnInit {
 
     return this.liabilities.reduce(
       (total, liability) =>
-        total + Number(
+        total +
+        Number(
           liability.outstandingAmount || 0
         ),
       0
@@ -417,18 +406,30 @@ export class Liabilities implements OnInit {
   }
 
   // =========================================================
-  // TOTAL EMI
+  // TOTAL EMI - ACTIVE LOANS ONLY
   // =========================================================
 
+  /**
+   * Paid-off loans (outstanding = 0) no longer have
+   * an EMI to pay, so they must not be counted.
+   */
   get totalMonthlyEmi(): number {
 
-    return this.liabilities.reduce(
-      (total, liability) =>
-        total + Number(
-          liability.monthlyEmi || 0
-        ),
-      0
-    );
+    return this.liabilities
+      .filter(
+        liability =>
+          Number(
+            liability.outstandingAmount || 0
+          ) > 0
+      )
+      .reduce(
+        (total, liability) =>
+          total +
+          Number(
+            liability.monthlyEmi || 0
+          ),
+        0
+      );
   }
 
   // =========================================================
@@ -439,7 +440,8 @@ export class Liabilities implements OnInit {
 
     return this.liabilities.reduce(
       (total, liability) =>
-        total + Number(
+        total +
+        Number(
           liability.principalAmount || 0
         ),
       0

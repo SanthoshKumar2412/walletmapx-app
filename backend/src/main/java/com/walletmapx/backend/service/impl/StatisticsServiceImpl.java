@@ -2,11 +2,7 @@ package com.walletmapx.backend.service.impl;
 
 import com.walletmapx.backend.dto.statistics.MonthlyTrendItem;
 import com.walletmapx.backend.dto.statistics.StatisticsResponse;
-import com.walletmapx.backend.entity.Expense;
-import com.walletmapx.backend.entity.Income;
 import com.walletmapx.backend.exception.BadRequestException;
-import com.walletmapx.backend.repository.ExpenseRepository;
-import com.walletmapx.backend.repository.IncomeRepository;
 import com.walletmapx.backend.service.FinancialAggregationService;
 import com.walletmapx.backend.service.StatisticsService;
 
@@ -17,12 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,72 +26,42 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     private static final int MAX_TREND_MONTHS = 24;
 
-    private final FinancialAggregationService financialAggregationService;
-    private final IncomeRepository incomeRepository;
-    private final ExpenseRepository expenseRepository;
+    private final FinancialAggregationService aggregation;
 
     // =========================================================
     // OVERVIEW
     // =========================================================
 
     @Override
-    public StatisticsResponse getOverview(Long userId) {
+    public StatisticsResponse getOverview(Long userId, String month) {
 
-        BigDecimal totalIncome =
-                financialAggregationService.totalIncome(userId);
+        YearMonth yearMonth = resolveMonth(month);
+        LocalDate start = yearMonth.atDay(1);
+        LocalDate end = yearMonth.atEndOfMonth();
 
-        BigDecimal totalExpenses =
-                financialAggregationService.totalExpenses(userId);
+        BigDecimal totalIncome = aggregation.totalIncomeBetween(userId, start, end);
+        BigDecimal totalExpenses = aggregation.totalExpensesBetween(userId, start, end);
+        BigDecimal totalSavings = totalIncome.subtract(totalExpenses);
 
-        BigDecimal totalSavings =
-                totalIncome.subtract(totalExpenses);
+        BigDecimal totalAssets = aggregation.totalAssets(userId);
+        BigDecimal totalLiabilities = aggregation.totalLiabilities(userId);
+        BigDecimal totalInvestments = aggregation.totalInvestments(userId);
 
-        BigDecimal savingsRate =
-                calculateSavingsRate(totalIncome, totalSavings);
-
-        BigDecimal totalAssets =
-                financialAggregationService.totalAssets(userId);
-
-        BigDecimal totalLiabilities =
-                financialAggregationService.totalLiabilities(userId);
-
-        BigDecimal totalInvestments =
-                financialAggregationService.totalInvestments(userId);
-
-        // Net Worth = Assets + Investments - Liabilities
         BigDecimal netWorth = totalAssets
                 .add(totalInvestments)
                 .subtract(totalLiabilities);
 
         Map<String, BigDecimal> incomeByCategory =
-                incomeRepository.findByUserId(userId)
-                        .stream()
-                        .collect(Collectors.groupingBy(
-                                Income::getCategory,
-                                Collectors.reducing(
-                                        BigDecimal.ZERO,
-                                        Income::getAmount,
-                                        BigDecimal::add
-                                )
-                        ));
+                aggregation.incomeByCategoryBetween(userId, start, end);
 
         Map<String, BigDecimal> expenseByCategory =
-                expenseRepository.findByUserId(userId)
-                        .stream()
-                        .collect(Collectors.groupingBy(
-                                Expense::getCategory,
-                                Collectors.reducing(
-                                        BigDecimal.ZERO,
-                                        Expense::getAmount,
-                                        BigDecimal::add
-                                )
-                        ));
+                aggregation.expenseByCategoryBetween(userId, start, end);
 
         return new StatisticsResponse(
                 totalIncome,
                 totalExpenses,
                 totalSavings,
-                savingsRate,
+                calculateSavingsRate(totalIncome, totalSavings),
                 totalAssets,
                 totalLiabilities,
                 totalInvestments,
@@ -115,42 +80,21 @@ public class StatisticsServiceImpl implements StatisticsService {
 
         if (months < 1 || months > MAX_TREND_MONTHS) {
             throw new BadRequestException(
-                    "months must be between 1 and " + MAX_TREND_MONTHS
-            );
+                    "months must be between 1 and " + MAX_TREND_MONTHS);
         }
 
         YearMonth currentMonth = YearMonth.now();
         YearMonth oldestMonth = currentMonth.minusMonths(months - 1L);
 
-        // Pull each collection once and group in memory rather
-        // than re-querying the DB per month.
-        Map<YearMonth, BigDecimal> incomeByMonth = incomeRepository
-                .findByUserId(userId)
-                .stream()
-                .filter(income -> income.getIncomeDate() != null)
-                .collect(Collectors.groupingBy(
-                        income -> YearMonth.from(income.getIncomeDate()),
-                        TreeMap::new,
-                        Collectors.reducing(
-                                BigDecimal.ZERO,
-                                Income::getAmount,
-                                BigDecimal::add
-                        )
-                ));
+        LocalDate start = oldestMonth.atDay(1);
+        LocalDate end = currentMonth.atEndOfMonth();
 
-        Map<YearMonth, BigDecimal> expenseByMonth = expenseRepository
-                .findByUserId(userId)
-                .stream()
-                .filter(expense -> expense.getExpenseDate() != null)
-                .collect(Collectors.groupingBy(
-                        expense -> YearMonth.from(expense.getExpenseDate()),
-                        TreeMap::new,
-                        Collectors.reducing(
-                                BigDecimal.ZERO,
-                                Expense::getAmount,
-                                BigDecimal::add
-                        )
-                ));
+        // Two grouped queries for the whole window
+        Map<YearMonth, BigDecimal> incomeByMonth =
+                aggregation.incomeByMonth(userId, start, end);
+
+        Map<YearMonth, BigDecimal> expenseByMonth =
+                aggregation.expenseByMonth(userId, start, end);
 
         List<MonthlyTrendItem> trend = new ArrayList<>();
 
@@ -158,15 +102,10 @@ public class StatisticsServiceImpl implements StatisticsService {
              !cursor.isAfter(currentMonth);
              cursor = cursor.plusMonths(1)) {
 
-            BigDecimal income = incomeByMonth.getOrDefault(
-                    cursor,
-                    BigDecimal.ZERO
-            );
-
-            BigDecimal expense = expenseByMonth.getOrDefault(
-                    cursor,
-                    BigDecimal.ZERO
-            );
+            BigDecimal income =
+                    incomeByMonth.getOrDefault(cursor, BigDecimal.ZERO);
+            BigDecimal expense =
+                    expenseByMonth.getOrDefault(cursor, BigDecimal.ZERO);
 
             trend.add(new MonthlyTrendItem(
                     cursor.toString(),
@@ -180,8 +119,21 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     // =========================================================
-    // SAVINGS RATE
+    // HELPERS
     // =========================================================
+
+    private YearMonth resolveMonth(String month) {
+
+        if (month == null || month.isBlank()) {
+            return YearMonth.now();
+        }
+
+        try {
+            return YearMonth.parse(month);
+        } catch (Exception exception) {
+            throw new BadRequestException("Invalid month format. Use YYYY-MM");
+        }
+    }
 
     private BigDecimal calculateSavingsRate(
             BigDecimal totalIncome,

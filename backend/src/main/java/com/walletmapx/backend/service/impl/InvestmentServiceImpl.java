@@ -39,10 +39,12 @@ public class InvestmentServiceImpl implements InvestmentService {
                         ? request.getInvestedAmount()
                         : BigDecimal.ZERO
         );
+        // Blank current value -> assume it is worth what was invested,
+        // otherwise net worth silently drops by the full amount.
         investment.setCurrentValue(
                 request.getCurrentValue() != null
                         ? request.getCurrentValue()
-                        : BigDecimal.ZERO
+                        : investment.getInvestedAmount()
         );
         investment.setInvestmentDate(request.getInvestmentDate());
         investment.setNotes(request.getNotes());
@@ -101,11 +103,12 @@ public class InvestmentServiceImpl implements InvestmentService {
             );
         }
 
-        if (request.getCurrentValue() != null) {
-            investment.setCurrentValue(
-                    request.getCurrentValue()
-            );
-        }
+        // Blank current value -> fall back to the invested amount
+        investment.setCurrentValue(
+                request.getCurrentValue() != null
+                        ? request.getCurrentValue()
+                        : investment.getInvestedAmount()
+        );
 
         investment.setInvestmentDate(
                 request.getInvestmentDate()

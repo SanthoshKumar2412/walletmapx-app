@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface IncomeRequest {
   category: string;
@@ -24,7 +25,7 @@ export interface IncomeResponse {
 export class IncomeService {
 
   private readonly apiUrl =
-    'http://localhost:8082/api/income';
+    `${environment.apiBaseUrl}/api/income`;
 
   constructor(
     private http: HttpClient

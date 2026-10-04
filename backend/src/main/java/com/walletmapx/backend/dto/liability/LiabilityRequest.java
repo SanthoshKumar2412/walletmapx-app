@@ -1,7 +1,9 @@
 package com.walletmapx.backend.dto.liability;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -10,27 +12,25 @@ import java.time.LocalDate;
 @Data
 public class LiabilityRequest {
 
-    @NotBlank
-    private String name;
+	@NotBlank
+	private String name;
 
-    @NotBlank
-    private String liabilityType;
+	@NotBlank
+	private String liabilityType;
 
-    @Positive
-    private BigDecimal principalAmount;
+	@NotNull @Positive
+	private BigDecimal principalAmount;
 
-    @Positive
-    private BigDecimal outstandingAmount;
+	@NotNull @PositiveOrZero
+	private BigDecimal outstandingAmount;
 
-    @Positive
-    private BigDecimal interestRate;
+	@NotNull @PositiveOrZero
+	private BigDecimal interestRate;
 
-    @Positive
-    private BigDecimal monthlyEmi;
+	@NotNull @PositiveOrZero
+	private BigDecimal monthlyEmi;
 
-    private LocalDate startDate;
-
-    private LocalDate endDate;
-
-    private String notes;
+	private LocalDate startDate;
+	private LocalDate endDate;
+	private String notes;
 }

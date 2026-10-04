@@ -1,5 +1,7 @@
-import { Component, EventEmitter, Output } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+
+import { Auth } from '../../core/services/auth';
 
 @Component({
   selector: 'app-sidebar',
@@ -12,9 +14,16 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 })
 export class Sidebar {
 
+  @Input() open = false;
   @Output() menuItemClicked = new EventEmitter<void>();
 
-  closeMenu(): void {
-    this.menuItemClicked.emit();
+  private auth = inject(Auth);
+  private router = inject(Router);
+
+  closeMenu(): void { this.menuItemClicked.emit(); }
+
+  logout(): void {
+    this.auth.logout();
+    this.router.navigate(['/login']);
   }
 }

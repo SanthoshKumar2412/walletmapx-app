@@ -1,3 +1,4 @@
+// src/app/features/expenses/expenses.ts
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -8,13 +9,22 @@ import {
   ExpenseService
 } from '../../core/services/expense';
 
+import {
+  currentMonth,
+  formatMonthLabel,
+  monthOf,
+  todayLocal
+} from '../../core/utils/date';
+import { MonthPicker } from '../../shared/month-picker/month-picker';
+
 @Component({
   selector: 'app-expenses',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule
-  ],
+    FormsModule,
+    MonthPicker
+],
   templateUrl: './expenses.html'
 })
 export class Expenses implements OnInit {
@@ -22,7 +32,14 @@ export class Expenses implements OnInit {
   private readonly expenseService =
     inject(ExpenseService);
 
-  expenses: ExpenseResponse[] = [];
+  /** Every record from the server (all months). */
+  allExpenses: ExpenseResponse[] = [];
+
+  /**
+   * Month filter (YYYY-MM). Defaults to the current month so a new
+   * month starts from zero. Clear the field to see all months.
+   */
+  selectedMonth = currentMonth();
 
   editingExpenseId: number | null = null;
 
@@ -37,16 +54,51 @@ export class Expenses implements OnInit {
   form: ExpenseRequest = {
     category: '',
     amount: 0,
-    expenseDate: this.getToday(),
+    expenseDate: todayLocal(),
     description: ''
   };
+
+  // =========================================================
+  // VIEW DATA (the template keeps using `expenses`)
+  // =========================================================
+
+  /** Records of the selected month, newest first. */
+  get expenses(): ExpenseResponse[] {
+
+    const list = this.selectedMonth
+      ? this.allExpenses.filter(
+          item => monthOf(item.expenseDate) === this.selectedMonth
+        )
+      : this.allExpenses;
+
+    return [...list].sort(
+      (a, b) => b.expenseDate.localeCompare(a.expenseDate)
+    );
+  }
+
+  /** Total of the selected month (or all time if month is cleared). */
+  get monthTotal(): number {
+
+    return this.expenses.reduce(
+      (total, item) => total + Number(item.amount || 0),
+      0
+    );
+  }
+
+  get monthLabel(): string {
+    return formatMonthLabel(this.selectedMonth);
+  }
+
+  // =========================================================
+  // INIT
+  // =========================================================
 
   ngOnInit(): void {
     this.loadExpenses();
   }
 
   // =========================================================
-  // LOAD EXPENSES
+  // LOAD
   // =========================================================
 
   loadExpenses(): void {
@@ -54,36 +106,26 @@ export class Expenses implements OnInit {
     this.loading = true;
     this.errorMessage = '';
 
-    this.expenseService
-      .getAllExpenses()
-      .subscribe({
+    this.expenseService.getAllExpenses().subscribe({
 
-        next: (response) => {
+      next: (response) => {
+        this.allExpenses = response;
+        this.loading = false;
+      },
 
-          this.expenses = response;
+      error: (error) => {
+        console.error('Expense loading failed:', error);
 
-          this.loading = false;
-        },
+        this.errorMessage =
+          error?.error?.message || 'Unable to load expenses.';
 
-        error: (error) => {
-
-          console.error(
-            'Expense loading failed:',
-            error
-          );
-
-          this.errorMessage =
-            error?.error?.message ||
-            'Unable to load expenses.';
-
-          this.loading = false;
-        }
-
-      });
+        this.loading = false;
+      }
+    });
   }
 
   // =========================================================
-  // OPEN FORM
+  // FORM
   // =========================================================
 
   openForm(): void {
@@ -98,10 +140,6 @@ export class Expenses implements OnInit {
     this.successMessage = '';
   }
 
-  // =========================================================
-  // CLOSE FORM
-  // =========================================================
-
   closeForm(): void {
 
     this.showForm = false;
@@ -113,31 +151,27 @@ export class Expenses implements OnInit {
     this.errorMessage = '';
   }
 
-  // =========================================================
-  // EDIT EXPENSE
-  // =========================================================
+  editExpense(item: ExpenseResponse): void {
 
-  editExpense(
-    expense: ExpenseResponse
-  ): void {
-
-    this.editingExpenseId = expense.id;
+    this.editingExpenseId = item.id;
 
     this.form = {
-      category: expense.category,
-      amount: expense.amount,
-      expenseDate: expense.expenseDate,
-      description: expense.description || ''
+      category: item.category,
+      amount: item.amount,
+      expenseDate: item.expenseDate,
+      description: item.description || ''
     };
 
     this.showForm = true;
 
     this.errorMessage = '';
     this.successMessage = '';
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   // =========================================================
-  // SAVE EXPENSE
+  // SAVE (CREATE / UPDATE)
   // =========================================================
 
   saveExpense(): void {
@@ -145,214 +179,146 @@ export class Expenses implements OnInit {
     this.errorMessage = '';
     this.successMessage = '';
 
-    // Validation
     if (!this.form.category.trim()) {
-
-      this.errorMessage =
-        'Category is required.';
-
+      this.errorMessage = 'Category is required.';
       return;
     }
 
-    if (
-      !this.form.amount ||
-      this.form.amount <= 0
-    ) {
-
-      this.errorMessage =
-        'Amount must be greater than 0.';
-
+    if (!this.form.amount || this.form.amount <= 0) {
+      this.errorMessage = 'Amount must be greater than 0.';
       return;
     }
 
     if (!this.form.expenseDate) {
-
-      this.errorMessage =
-        'Expense date is required.';
-
+      this.errorMessage = 'Expense date is required.';
       return;
     }
 
     this.submitting = true;
 
-    // =======================================================
-    // UPDATE
-    // =======================================================
-
+    // ---------- UPDATE ----------
     if (this.editingExpenseId !== null) {
 
       this.expenseService
-        .updateExpense(
-          this.editingExpenseId,
-          this.form
-        )
+        .updateExpense(this.editingExpenseId, this.form)
         .subscribe({
 
           next: (response) => {
 
-            const index =
-              this.expenses.findIndex(
-                expense =>
-                  expense.id === response.id
-              );
+            this.allExpenses = this.allExpenses.map(
+              item => item.id === response.id ? response : item
+            );
 
-            if (index !== -1) {
-
-              this.expenses[index] =
-                response;
-            }
-
-            this.expenses =
-              [...this.expenses];
+            this.followMonthOf(response.expenseDate);
 
             this.submitting = false;
-
             this.showForm = false;
-
             this.editingExpenseId = null;
 
             this.resetForm();
 
-            this.successMessage =
-              'Expense updated successfully.';
+            this.successMessage = 'Expense updated successfully.';
           },
 
           error: (error) => {
-
-            console.error(
-              'Expense update failed:',
-              error
-            );
+            console.error('Expense update failed:', error);
 
             this.submitting = false;
 
             this.errorMessage =
-              error?.error?.message ||
-              'Unable to update expense.';
+              error?.error?.message || 'Unable to update expense.';
           }
-
         });
 
       return;
     }
 
-    // =======================================================
-    // CREATE
-    // =======================================================
-
+    // ---------- CREATE ----------
     this.expenseService
       .createExpense(this.form)
       .subscribe({
 
         next: (response) => {
 
-          this.expenses = [
-            response,
-            ...this.expenses
-          ];
+          this.allExpenses = [response, ...this.allExpenses];
+
+          this.followMonthOf(response.expenseDate);
 
           this.submitting = false;
-
           this.showForm = false;
 
           this.resetForm();
 
-          this.successMessage =
-            'Expense added successfully.';
+          this.successMessage = 'Expense added successfully.';
         },
 
         error: (error) => {
-
-          console.error(
-            'Expense creation failed:',
-            error
-          );
+          console.error('Expense creation failed:', error);
 
           this.submitting = false;
 
           this.errorMessage =
-            error?.error?.message ||
-            'Unable to add expense.';
+            error?.error?.message || 'Unable to add expense.';
         }
-
       });
   }
 
   // =========================================================
-  // DELETE EXPENSE
+  // DELETE
   // =========================================================
 
   deleteExpense(id: number): void {
 
-    const confirmed =
-      window.confirm(
-        'Are you sure you want to delete this expense?'
-      );
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this expense?'
+    );
 
     if (!confirmed) {
       return;
     }
 
-    this.expenseService
-      .deleteExpense(id)
-      .subscribe({
+    this.errorMessage = '';
+    this.successMessage = '';
 
-        next: () => {
+    this.expenseService.deleteExpense(id).subscribe({
 
-          this.expenses =
-            this.expenses.filter(
-              expense =>
-                expense.id !== id
-            );
+      next: () => {
+        this.allExpenses = this.allExpenses.filter(item => item.id !== id);
+        this.successMessage = 'Expense deleted successfully.';
+      },
 
-          this.successMessage =
-            'Expense deleted successfully.';
-        },
+      error: (error) => {
+        console.error('Expense deletion failed:', error);
 
-        error: (error) => {
-
-          console.error(
-            'Expense deletion failed:',
-            error
-          );
-
-          this.errorMessage =
-            error?.error?.message ||
-            'Unable to delete expense.';
-        }
-
-      });
+        this.errorMessage =
+          error?.error?.message || 'Unable to delete expense.';
+      }
+    });
   }
 
   // =========================================================
-  // RESET FORM
+  // HELPERS
   // =========================================================
+
+  /**
+   * If the month filter is active and the saved record belongs to
+   * another month, jump to that month so the record does not seem
+   * to vanish.
+   */
+  private followMonthOf(date: string): void {
+
+    if (this.selectedMonth) {
+      this.selectedMonth = monthOf(date);
+    }
+  }
 
   private resetForm(): void {
 
     this.form = {
-
       category: '',
-
       amount: 0,
-
-      expenseDate:
-        this.getToday(),
-
+      expenseDate: todayLocal(),
       description: ''
     };
-  }
-
-  // =========================================================
-  // TODAY
-  // =========================================================
-
-  private getToday(): string {
-
-    const today = new Date();
-
-    return today
-      .toISOString()
-      .split('T')[0];
   }
 }

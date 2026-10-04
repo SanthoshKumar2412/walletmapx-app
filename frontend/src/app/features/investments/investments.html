@@ -181,6 +181,7 @@
       </div>
 
 
+      <!-- Form -->
       <form
         (submit)="$event.preventDefault(); saveInvestment()"
         class="grid grid-cols-1 gap-5
@@ -397,6 +398,10 @@
                    focus:ring-blue-100"
           />
 
+          <p class="mt-1 text-xs text-gray-400">
+            Leave blank to use the invested amount.
+          </p>
+
         </div>
 
 
@@ -466,12 +471,15 @@
           <button
             type="button"
             (click)="closeForm()"
+            [disabled]="submitting"
             class="rounded-lg border
                    border-gray-300
                    px-5 py-2.5
                    text-sm font-medium
                    text-gray-700
-                   hover:bg-gray-50"
+                   hover:bg-gray-50
+                   disabled:cursor-not-allowed
+                   disabled:opacity-50"
           >
             Cancel
           </button>
@@ -667,7 +675,7 @@
                            text-xs font-medium
                            text-blue-700"
                   >
-                    {{ investment.investmentType }}
+                    {{ typeLabel(investment.investmentType) }}
                   </span>
 
                 </td>
@@ -798,7 +806,7 @@
                   class="mt-1 text-xs
                          text-gray-500"
                 >
-                  {{ investment.investmentType }}
+                  {{ typeLabel(investment.investmentType) }}
                 </p>
 
               </div>

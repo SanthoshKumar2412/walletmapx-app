@@ -64,52 +64,47 @@ public class MonthlySnapshotServiceImpl
             );
         }
 
-        LocalDate startDate = yearMonth.atDay(1);
-        LocalDate endDate = yearMonth.atEndOfMonth();
-
-        BigDecimal totalAssets =
-                financialAggregationService.totalAssets(userId);
-
-        BigDecimal totalLiabilities =
-                financialAggregationService.totalLiabilities(userId);
-
-        BigDecimal totalIncome =
-                financialAggregationService.totalIncomeBetween(
-                        userId,
-                        startDate,
-                        endDate
-                );
-
-        BigDecimal totalExpenses =
-                financialAggregationService.totalExpensesBetween(
-                        userId,
-                        startDate,
-                        endDate
-                );
-
-        BigDecimal totalInvestments =
-                financialAggregationService.totalInvestments(userId);
-
-        // Net Worth = Assets + Investments - Liabilities
-        BigDecimal netWorth = totalAssets
-                .add(totalInvestments)
-                .subtract(totalLiabilities);
-
         MonthlySnapshot snapshot = new MonthlySnapshot();
 
         snapshot.setUserId(userId);
         snapshot.setSnapshotMonth(snapshotMonth);
-        snapshot.setTotalAssets(totalAssets);
-        snapshot.setTotalLiabilities(totalLiabilities);
-        snapshot.setNetWorth(netWorth);
-        snapshot.setTotalIncome(totalIncome);
-        snapshot.setTotalExpenses(totalExpenses);
-        snapshot.setTotalInvestments(totalInvestments);
+
+        applyCurrentTotals(snapshot, userId, yearMonth);
 
         MonthlySnapshot savedSnapshot =
                 monthlySnapshotRepository.save(snapshot);
 
         return mapToResponse(savedSnapshot);
+    }
+
+    // =========================================================
+    // CREATE OR REFRESH CURRENT MONTH SNAPSHOT
+    // =========================================================
+
+    @Override
+    public void refreshCurrentMonthSnapshot(Long userId) {
+
+        YearMonth yearMonth = YearMonth.now();
+
+        LocalDate snapshotMonth = yearMonth.atDay(1);
+
+        MonthlySnapshot snapshot =
+                monthlySnapshotRepository
+                        .findByUserIdAndSnapshotMonth(
+                                userId,
+                                snapshotMonth
+                        )
+                        .orElseGet(() -> {
+                            MonthlySnapshot created =
+                                    new MonthlySnapshot();
+                            created.setUserId(userId);
+                            created.setSnapshotMonth(snapshotMonth);
+                            return created;
+                        });
+
+        applyCurrentTotals(snapshot, userId, yearMonth);
+
+        monthlySnapshotRepository.save(snapshot);
     }
 
     // =========================================================
@@ -165,6 +160,54 @@ public class MonthlySnapshotServiceImpl
                         );
 
         return mapToResponse(snapshot);
+    }
+
+    // =========================================================
+    // SHARED: FILL SNAPSHOT WITH CURRENT TOTALS
+    // =========================================================
+
+    private void applyCurrentTotals(
+            MonthlySnapshot snapshot,
+            Long userId,
+            YearMonth yearMonth) {
+
+        LocalDate startDate = yearMonth.atDay(1);
+        LocalDate endDate = yearMonth.atEndOfMonth();
+
+        BigDecimal totalAssets =
+                financialAggregationService.totalAssets(userId);
+
+        BigDecimal totalLiabilities =
+                financialAggregationService.totalLiabilities(userId);
+
+        BigDecimal totalInvestments =
+                financialAggregationService.totalInvestments(userId);
+
+        BigDecimal totalIncome =
+                financialAggregationService.totalIncomeBetween(
+                        userId,
+                        startDate,
+                        endDate
+                );
+
+        BigDecimal totalExpenses =
+                financialAggregationService.totalExpensesBetween(
+                        userId,
+                        startDate,
+                        endDate
+                );
+
+        // Net Worth = Assets + Investments - Liabilities
+        BigDecimal netWorth = totalAssets
+                .add(totalInvestments)
+                .subtract(totalLiabilities);
+
+        snapshot.setTotalAssets(totalAssets);
+        snapshot.setTotalLiabilities(totalLiabilities);
+        snapshot.setTotalInvestments(totalInvestments);
+        snapshot.setTotalIncome(totalIncome);
+        snapshot.setTotalExpenses(totalExpenses);
+        snapshot.setNetWorth(netWorth);
     }
 
     // =========================================================

@@ -1,10 +1,5 @@
 package com.walletmapx.backend.service;
 
-import com.walletmapx.backend.entity.Asset;
-import com.walletmapx.backend.entity.Expense;
-import com.walletmapx.backend.entity.Income;
-import com.walletmapx.backend.entity.Investment;
-import com.walletmapx.backend.entity.Liability;
 import com.walletmapx.backend.repository.AssetRepository;
 import com.walletmapx.backend.repository.ExpenseRepository;
 import com.walletmapx.backend.repository.IncomeRepository;
@@ -17,15 +12,14 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Single source of truth for the core financial totals
- * (assets, liabilities, income, expenses, investments, net worth).
- *
- * DashboardServiceImpl, MonthlySnapshotServiceImpl and
- * StatisticsServiceImpl all delegate here instead of each
- * re-implementing the same stream/reduce logic. Fix a
- * calculation once, it's fixed everywhere.
+ * Single source of truth for financial totals.
+ * All sums run in the database (SUM / GROUP BY), not in Java.
  */
 @Component
 @RequiredArgsConstructor
@@ -37,124 +31,97 @@ public class FinancialAggregationService {
     private final ExpenseRepository expenseRepository;
     private final InvestmentRepository investmentRepository;
 
-    // =========================================================
-    // POINT-IN-TIME TOTALS (not date-scoped)
-    // =========================================================
+    // ---------- point-in-time ----------
 
     public BigDecimal totalAssets(Long userId) {
-
-        return assetRepository
-                .findByUserId(userId)
-                .stream()
-                .map(Asset::getCurrentValue)
-                .map(this::safeAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return safe(assetRepository.sumCurrentValue(userId));
     }
 
     public BigDecimal totalLiabilities(Long userId) {
-
-        return liabilityRepository
-                .findByUserId(userId)
-                .stream()
-                .map(Liability::getOutstandingAmount)
-                .map(this::safeAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return safe(liabilityRepository.sumOutstanding(userId));
     }
 
     public BigDecimal totalInvestments(Long userId) {
-
-        return investmentRepository
-                .findByUserId(userId)
-                .stream()
-                .map(Investment::getCurrentValue)
-                .map(this::safeAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return safe(investmentRepository.sumCurrentValue(userId));
     }
 
-    /**
-     * Net Worth = Assets + Investments - Liabilities.
-     * Assets and Investments are stored as separate ledgers
-     * (see WalletMapX design decision), so both are additive here.
-     */
+    /** Net Worth = Assets + Investments - Liabilities */
     public BigDecimal netWorth(Long userId) {
-
         return totalAssets(userId)
                 .add(totalInvestments(userId))
                 .subtract(totalLiabilities(userId));
     }
 
-    // =========================================================
-    // ALL-TIME INCOME / EXPENSES (no date filter)
-    // =========================================================
+    // ---------- all-time ----------
 
     public BigDecimal totalIncome(Long userId) {
-
-        return incomeRepository
-                .findByUserId(userId)
-                .stream()
-                .map(Income::getAmount)
-                .map(this::safeAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return safe(incomeRepository.sumAll(userId));
     }
 
     public BigDecimal totalExpenses(Long userId) {
-
-        return expenseRepository
-                .findByUserId(userId)
-                .stream()
-                .map(Expense::getAmount)
-                .map(this::safeAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return safe(expenseRepository.sumAll(userId));
     }
 
-    // =========================================================
-    // DATE-SCOPED INCOME / EXPENSES (inclusive range)
-    // =========================================================
+    // ---------- date range (inclusive) ----------
 
-    public BigDecimal totalIncomeBetween(
-            Long userId,
-            LocalDate startDate,
-            LocalDate endDate) {
-
-        return incomeRepository
-                .findByUserId(userId)
-                .stream()
-                .filter(income ->
-                        income.getIncomeDate() != null
-                                && !income.getIncomeDate().isBefore(startDate)
-                                && !income.getIncomeDate().isAfter(endDate)
-                )
-                .map(Income::getAmount)
-                .map(this::safeAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    public BigDecimal totalIncomeBetween(Long userId, LocalDate start, LocalDate end) {
+        return safe(incomeRepository.sumBetween(userId, start, end));
     }
 
-    public BigDecimal totalExpensesBetween(
-            Long userId,
-            LocalDate startDate,
-            LocalDate endDate) {
-
-        return expenseRepository
-                .findByUserId(userId)
-                .stream()
-                .filter(expense ->
-                        expense.getExpenseDate() != null
-                                && !expense.getExpenseDate().isBefore(startDate)
-                                && !expense.getExpenseDate().isAfter(endDate)
-                )
-                .map(Expense::getAmount)
-                .map(this::safeAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    public BigDecimal totalExpensesBetween(Long userId, LocalDate start, LocalDate end) {
+        return safe(expenseRepository.sumBetween(userId, start, end));
     }
 
-    // =========================================================
-    // NULL SAFETY
-    // =========================================================
+    // ---------- category breakdown ----------
 
-    private BigDecimal safeAmount(BigDecimal amount) {
+    public Map<String, BigDecimal> incomeByCategoryBetween(
+            Long userId, LocalDate start, LocalDate end) {
+        return toCategoryMap(
+                incomeRepository.sumByCategoryBetween(userId, start, end));
+    }
 
-        return amount != null
-                ? amount
-                : BigDecimal.ZERO;
+    public Map<String, BigDecimal> expenseByCategoryBetween(
+            Long userId, LocalDate start, LocalDate end) {
+        return toCategoryMap(
+                expenseRepository.sumByCategoryBetween(userId, start, end));
+    }
+
+    // ---------- month series ----------
+
+    public Map<YearMonth, BigDecimal> incomeByMonth(
+            Long userId, LocalDate start, LocalDate end) {
+        return toMonthMap(
+                incomeRepository.sumByMonthBetween(userId, start, end));
+    }
+
+    public Map<YearMonth, BigDecimal> expenseByMonth(
+            Long userId, LocalDate start, LocalDate end) {
+        return toMonthMap(
+                expenseRepository.sumByMonthBetween(userId, start, end));
+    }
+
+    // ---------- helpers ----------
+
+    private Map<String, BigDecimal> toCategoryMap(List<Object[]> rows) {
+        Map<String, BigDecimal> result = new LinkedHashMap<>();
+        for (Object[] row : rows) {
+            result.put((String) row[0], safe((BigDecimal) row[1]));
+        }
+        return result;
+    }
+
+    private Map<YearMonth, BigDecimal> toMonthMap(List<Object[]> rows) {
+        Map<YearMonth, BigDecimal> result = new LinkedHashMap<>();
+        for (Object[] row : rows) {
+            YearMonth ym = YearMonth.of(
+                    ((Number) row[0]).intValue(),
+                    ((Number) row[1]).intValue());
+            result.put(ym, safe((BigDecimal) row[2]));
+        }
+        return result;
+    }
+
+    private BigDecimal safe(BigDecimal amount) {
+        return amount != null ? amount : BigDecimal.ZERO;
     }
 }

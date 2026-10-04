@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface InvestmentRequest {
   name: string;
@@ -34,7 +35,7 @@ export interface InvestmentResponse {
 export class InvestmentService {
 
   private readonly apiUrl =
-    'http://localhost:8082/api/investments';
+    `${environment.apiBaseUrl}/api/investments`;
 
   constructor(
     private http: HttpClient

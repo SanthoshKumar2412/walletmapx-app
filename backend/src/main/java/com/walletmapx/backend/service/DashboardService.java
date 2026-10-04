@@ -8,7 +8,12 @@ import java.util.List;
 
 public interface DashboardService {
 
-    DashboardResponse getDashboard(Long userId);
+    /**
+     * Dashboard for one month. Income/expenses are scoped to that
+     * month; assets, liabilities, investments and net worth are
+     * current point-in-time values. month = "YYYY-MM", null = current month.
+     */
+    DashboardResponse getDashboard(Long userId, String month);
 
     MonthlyDashboardResponse getMonthlyDashboard(
             Long userId,

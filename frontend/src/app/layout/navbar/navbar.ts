@@ -1,107 +1,71 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { Subscription } from 'rxjs';
 
+import { Auth } from '../../core/services/auth';
 import {
   ProfileResponse,
   ProfileService
 } from '../../core/services/profile';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
+  imports: [RouterLink],
   templateUrl: './navbar.html'
 })
-export class Navbar implements OnInit {
-
-  @Output() menuClicked =
-    new EventEmitter<void>();
+export class Navbar implements OnInit, OnDestroy {
+  @Input() menuOpen = false;
+  @Output() menuClicked = new EventEmitter<void>();
 
   profile: ProfileResponse | null = null;
 
-  readonly backendUrl =
-    'http://localhost:8082';
+  readonly backendUrl = `${environment.apiBaseUrl}`;
+
+  private sub?: Subscription;
 
   constructor(
     private router: Router,
+    private auth: Auth,
     private profileService: ProfileService
   ) {}
 
   ngOnInit(): void {
-    this.loadProfile();
-  }
-
-  // =========================================================
-  // LOAD PROFILE
-  // =========================================================
-
-  private loadProfile(): void {
+    this.sub = this.profileService.profile$.subscribe(p => {
+      this.profile = p;
+      if (p) {
+        localStorage.setItem('user', JSON.stringify(p));
+      }
+    });
 
     this.profileService.getMyProfile().subscribe({
-
-      next: (response) => {
-
-        this.profile = response;
-
-        // Keep latest user information
-        localStorage.setItem(
-          'user',
-          JSON.stringify(response)
-        );
-      },
-
-      error: (error) => {
-
-        console.error(
-          'Navbar profile loading failed:',
-          error
-        );
-
-      }
-
+      error: (error) =>
+        console.error('Navbar profile loading failed:', error)
     });
   }
 
-  // =========================================================
-  // PROFILE IMAGE URL
-  // =========================================================
-
-  get profileImageUrl(): string | null {
-
-    if (!this.profile?.profileImageUrl) {
-      return null;
-    }
-
-    return this.backendUrl +
-      this.profile.profileImageUrl;
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
   }
 
-  // =========================================================
-  // PROFILE ICON CLICK
-  // =========================================================
+  get profileImageUrl(): string | null {
+    return this.profile?.profileImageUrl
+      ? this.backendUrl + this.profile.profileImageUrl
+      : null;
+  }
 
   openProfile(): void {
-
     this.router.navigate(['/profile']);
   }
 
-  // =========================================================
-  // MENU
-  // =========================================================
-
   onMenuClick(): void {
-
     this.menuClicked.emit();
   }
 
-  // =========================================================
-  // LOGOUT
-  // =========================================================
-
   logout(): void {
-
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-
+    this.auth.logout();
+    this.profileService.clear();
     this.router.navigate(['/login']);
   }
 }

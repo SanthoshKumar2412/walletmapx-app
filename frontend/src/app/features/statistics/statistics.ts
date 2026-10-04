@@ -1,5 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
+// src/app/features/statistics/statistics.ts
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 
 import {
   StatisticsResponse,
@@ -7,13 +9,21 @@ import {
   StatisticsService
 } from '../../core/services/statistics';
 
+import {
+  currentMonth,
+  formatMonthLabel
+} from '../../core/utils/date';
+
+import { MonthPicker } from '../../shared/month-picker/month-picker';
+import { IncomeExpenseChart } from '../../shared/income-expense-chart/income-expense-chart';
+
 @Component({
   selector: 'app-statistics',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MonthPicker, IncomeExpenseChart],
   templateUrl: './statistics.html'
 })
-export class Statistics implements OnInit {
+export class Statistics implements OnInit, OnDestroy {
 
   private readonly statisticsService =
     inject(StatisticsService);
@@ -21,100 +31,97 @@ export class Statistics implements OnInit {
   statistics: StatisticsResponse | null = null;
 
   trend: MonthlyTrendItem[] = [];
-
+  trendError = '';
   loading = true;
   errorMessage = '';
 
+  /** Trend length (months back from today) */
   selectedMonths = 6;
 
+  /** Month for the summary cards + category breakdown (YYYY-MM) */
+  selectedMonth = currentMonth();
+
+  readonly maxMonth = currentMonth();
+
+  private overviewRequest?: Subscription;
+
+  get monthLabel(): string {
+    return formatMonthLabel(this.selectedMonth);
+  }
+
+  /** "2026-10" -> "October 2026" (used by the trend table) */
+  formatTrendMonth(month: string): string {
+    return formatMonthLabel(month);
+  }
+
   ngOnInit(): void {
-    this.loadStatistics();
+    this.loadOverview();
+    this.loadTrend();
+  }
+
+  ngOnDestroy(): void {
+    this.overviewRequest?.unsubscribe();
   }
 
   // =========================================================
-  // LOAD STATISTICS
+  // OVERVIEW (selected month)
   // =========================================================
 
-  loadStatistics(): void {
+  loadOverview(): void {
 
-    this.loading = true;
     this.errorMessage = '';
 
-    this.statisticsService
-      .getOverview()
+    this.overviewRequest?.unsubscribe();
+
+    this.overviewRequest = this.statisticsService
+      .getOverview(this.selectedMonth)
       .subscribe({
 
         next: (response) => {
-
-          console.log(
-            'Statistics overview:',
-            response
-          );
-
           this.statistics = response;
-
-          this.loadTrend();
+          this.loading = false;
         },
 
         error: (error) => {
-
-          console.error(
-            'Statistics overview failed:',
-            error
-          );
+          console.error('Statistics overview failed:', error);
 
           this.errorMessage =
-            error?.error?.message ||
-            'Unable to load statistics.';
+            error?.error?.message || 'Unable to load statistics.';
 
           this.loading = false;
         }
-
       });
   }
 
+  onMonthChange(value: string): void {
+
+    this.selectedMonth = value || currentMonth();
+
+    this.loadOverview();
+  }
+
   // =========================================================
-  // LOAD TREND
+  // TREND
   // =========================================================
 
   loadTrend(): void {
 
-    this.statisticsService
-      .getTrend(this.selectedMonths)
-      .subscribe({
+    this.trendError = '';
 
-        next: (response) => {
+    this.statisticsService.getTrend(this.selectedMonths).subscribe({
 
-          console.log(
-            'Statistics trend:',
-            response
-          );
+      next: (response) => {
+        this.trend = response;
+      },
 
-          this.trend = response;
+      error: (error) => {
+        console.error('Statistics trend failed:', error);
 
-          this.loading = false;
-        },
-
-        error: (error) => {
-
-          console.error(
-            'Statistics trend failed:',
-            error
-          );
-
-          this.errorMessage =
-            error?.error?.message ||
-            'Unable to load statistics trend.';
-
-          this.loading = false;
-        }
-
-      });
+        this.trendError =
+          error?.error?.message || 'Unable to load statistics trend.';
+      }
+    });
   }
-
-  // =========================================================
-  // CHANGE TREND PERIOD
-  // =========================================================
 
   changeMonths(months: number): void {
 
@@ -124,72 +131,40 @@ export class Statistics implements OnInit {
   }
 
   // =========================================================
-  // TOTAL INCOME
+  // GETTERS
   // =========================================================
 
   get totalIncome(): number {
     return this.statistics?.totalIncome ?? 0;
   }
 
-  // =========================================================
-  // TOTAL EXPENSES
-  // =========================================================
-
   get totalExpenses(): number {
     return this.statistics?.totalExpenses ?? 0;
   }
-
-  // =========================================================
-  // TOTAL SAVINGS
-  // =========================================================
 
   get totalSavings(): number {
     return this.statistics?.totalSavings ?? 0;
   }
 
-  // =========================================================
-  // SAVINGS RATE
-  // =========================================================
-
   get savingsRate(): number {
     return this.statistics?.savingsRate ?? 0;
   }
-
-  // =========================================================
-  // NET WORTH
-  // =========================================================
 
   get netWorth(): number {
     return this.statistics?.netWorth ?? 0;
   }
 
-  // =========================================================
-  // ASSETS
-  // =========================================================
-
   get totalAssets(): number {
     return this.statistics?.totalAssets ?? 0;
   }
-
-  // =========================================================
-  // LIABILITIES
-  // =========================================================
 
   get totalLiabilities(): number {
     return this.statistics?.totalLiabilities ?? 0;
   }
 
-  // =========================================================
-  // INVESTMENTS
-  // =========================================================
-
   get totalInvestments(): number {
     return this.statistics?.totalInvestments ?? 0;
   }
-
-  // =========================================================
-  // CATEGORY DATA
-  // =========================================================
 
   get incomeCategories() {
     return Object.entries(

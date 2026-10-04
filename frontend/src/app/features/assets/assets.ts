@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
+import { todayLocal } from '../../core/utils/date';
 import {
   AssetRequest,
   AssetResponse,
@@ -386,44 +386,33 @@ export class Assets implements OnInit {
 
   private validateForm(): boolean {
 
-    if (!this.form.name.trim()) {
-
-      this.errorMessage =
-        'Asset name is required.';
-
-      return false;
-    }
-
-    if (
-      this.form.investedAmount < 0
-    ) {
-
-      this.errorMessage =
-        'Invested amount cannot be negative.';
-
-      return false;
-    }
-
-    if (
-      this.form.currentValue < 0
-    ) {
-
-      this.errorMessage =
-        'Current value cannot be negative.';
-
-      return false;
-    }
-
-    if (!this.form.purchaseDate) {
-
-      this.errorMessage =
-        'Purchase date is required.';
-
-      return false;
-    }
-
-    return true;
+  if (this.form.categoryId === null) {
+    this.errorMessage = 'Please select a category.';
+    return false;
   }
+
+  if (!this.form.name.trim()) {
+    this.errorMessage = 'Asset name is required.';
+    return false;
+  }
+
+  if (this.form.investedAmount == null || this.form.investedAmount < 0) {
+    this.errorMessage = 'Invested amount cannot be negative.';
+    return false;
+  }
+
+  if (this.form.currentValue == null || this.form.currentValue < 0) {
+    this.errorMessage = 'Current value cannot be negative.';
+    return false;
+  }
+
+  if (!this.form.purchaseDate) {
+    this.errorMessage = 'Purchase date is required.';
+    return false;
+  }
+
+  return true;
+}
 
   // =========================================================
   // RESET FORM
@@ -465,13 +454,13 @@ export class Assets implements OnInit {
   // TODAY
   // =========================================================
 
-  private getToday(): string {
-
-    const today = new Date();
-
-    return today
-      .toISOString()
-      .split('T')[0];
+   private getToday(): string {
+ 
+    const d = new Date();
+ 
+    const pad = (n: number) => String(n).padStart(2, '0');
+ 
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   }
 
   // =========================================================

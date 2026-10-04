@@ -27,13 +27,14 @@ public class DashboardController {
 
     @GetMapping
     public ResponseEntity<DashboardResponse> getDashboard(
+            @RequestParam(required = false) String month,
             Authentication authentication) {
 
         Long userId =
                 Long.parseLong(authentication.getName());
 
         return ResponseEntity.ok(
-                dashboardService.getDashboard(userId)
+                dashboardService.getDashboard(userId, month)
         );
     }
 

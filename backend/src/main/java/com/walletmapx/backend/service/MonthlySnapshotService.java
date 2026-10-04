@@ -20,4 +20,11 @@ public interface MonthlySnapshotService {
             Long userId,
             String month
     );
+
+    /**
+     * Creates the snapshot for the current month if it does not
+     * exist yet, otherwise refreshes it with the latest totals.
+     * Safe to call repeatedly.
+     */
+    void refreshCurrentMonthSnapshot(Long userId);
 }

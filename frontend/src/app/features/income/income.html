@@ -1,3 +1,4 @@
+
 <div class="mx-auto w-full max-w-7xl">
 
   <!-- ===================================================== -->
@@ -83,6 +84,77 @@
     </div>
 
   }
+
+
+  <!-- ===================================================== -->
+  <!-- MONTH FILTER + SUMMARY -->
+  <!-- ===================================================== -->
+
+  <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+
+    <!-- MONTH FILTER -->
+
+    <div
+      class="rounded-xl bg-white p-5
+             shadow-sm ring-1 ring-gray-100"
+    >
+
+     <p class="mb-2 text-sm text-gray-500">Month</p>
+
+<app-month-picker
+  [(value)]="selectedMonth"
+  [allowClear]="true"
+/>
+
+<p class="mt-2 text-xs text-gray-400">
+  Choose "All months" to see everything.
+</p>
+
+    </div>
+
+
+    <!-- MONTHLY INCOME -->
+
+    <div
+      class="rounded-xl bg-white p-5
+             shadow-sm ring-1 ring-gray-100"
+    >
+
+      <p class="text-sm text-gray-500">
+        Income · {{ monthLabel }}
+      </p>
+
+      <p
+        class="mt-2 text-2xl font-bold
+               text-green-600"
+      >
+        ₹{{ monthTotal | number:'1.0-2' }}
+      </p>
+
+    </div>
+
+
+    <!-- TRANSACTIONS -->
+
+    <div
+      class="rounded-xl bg-white p-5
+             shadow-sm ring-1 ring-gray-100"
+    >
+
+      <p class="text-sm text-gray-500">
+        Transactions
+      </p>
+
+      <p
+        class="mt-2 text-2xl font-bold
+               text-gray-900"
+      >
+        {{ incomes.length }}
+      </p>
+
+    </div>
+
+  </div>
 
 
   <!-- ===================================================== -->
@@ -598,9 +670,11 @@
                   class="max-w-xs px-5 py-4
                          text-sm text-gray-600"
                 >
+
                   <span class="block truncate">
                     {{ income.description || '—' }}
                   </span>
+
                 </td>
 
 

@@ -5,6 +5,7 @@ import {
   ProfileResponse,
   ProfileService
 } from '../../core/services/profile';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-profile',
@@ -12,7 +13,7 @@ import {
   templateUrl: './profile.html'
 })
 export class Profile implements OnInit {
-
+  readonly backendUrl = environment.apiBaseUrl;
   profile: ProfileResponse | null = null;
 
   loading = true;

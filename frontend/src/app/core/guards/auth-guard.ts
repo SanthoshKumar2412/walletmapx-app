@@ -1,15 +1,29 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 
-export const authGuard: CanActivateFn = (route, state) => {
+function isExpired(token: string): boolean {
+  try {
+    const payload = token.split('.')[1];
+    const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+    const { exp } = JSON.parse(json) as { exp?: number };
+
+    return !!exp && exp * 1000 <= Date.now();
+  } catch {
+    // Malformed token: treat as invalid
+    return true;
+  }
+}
+
+export const authGuard: CanActivateFn = () => {
 
   const token = localStorage.getItem('token');
 
-  if (token) {
+  if (token && !isExpired(token)) {
     return true;
   }
 
-  const router = inject(Router);
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
 
-  return router.createUrlTree(['/login']);
+  return inject(Router).createUrlTree(['/login']);
 };

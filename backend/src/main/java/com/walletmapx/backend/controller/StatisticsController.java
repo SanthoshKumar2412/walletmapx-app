@@ -23,10 +23,11 @@ public class StatisticsController {
     private final StatisticsService statisticsService;
 
     /**
-     * All-time totals, net worth, and income/expense by category.
+     * Monthly income/expense/savings + category breakdown, and current net worth.
      */
     @GetMapping("/overview")
     public ResponseEntity<StatisticsResponse> getOverview(
+            @RequestParam(required = false) String month,
             Authentication authentication) {
 
         Long userId = Long.parseLong(
@@ -34,7 +35,7 @@ public class StatisticsController {
         );
 
         return ResponseEntity.ok(
-                statisticsService.getOverview(userId)
+                statisticsService.getOverview(userId, month)
         );
     }
 

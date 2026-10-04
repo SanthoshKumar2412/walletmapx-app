@@ -1,96 +1,200 @@
 <header class="sticky top-0 z-40 border-b border-gray-200 bg-white">
 
-  <div class="flex h-16 items-center justify-between px-4 sm:px-6">
+  <div class="flex h-16 items-center justify-between gap-2 px-4 sm:px-6">
 
-    <!-- Mobile Menu -->
-    <button
-      type="button"
-      (click)="onMenuClick()"
-      class="rounded-lg p-2 text-gray-600 hover:bg-gray-100 lg:hidden"
-      aria-label="Open menu"
-    >
-      ☰
-    </button>
+    <!-- Brand (left) -->
+    <div class="flex min-w-0 items-center">
+      <a routerLink="/dashboard" class="flex items-center" aria-label="WalletMapX">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 2170 720"
+          class="h-10 w-auto sm:h-12"
+          role="img"
+          aria-label="WalletMapX logo"
+        >
 
-    <!-- Brand -->
-    <div class="flex items-center gap-2">
+          <defs>
+            <linearGradient id="body" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#0aa2f7"/>
+              <stop offset="0.45" stop-color="#0a5fc9"/>
+              <stop offset="1" stop-color="#08308f"/>
+            </linearGradient>
 
-      <div
-        class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 font-bold text-white"
+            <linearGradient id="card" x1="0" y1="1" x2="1" y2="0">
+              <stop offset="0" stop-color="#0a6fd0"/>
+              <stop offset="0.55" stop-color="#12a6a0"/>
+              <stop offset="1" stop-color="#4ee08a"/>
+            </linearGradient>
+
+            <linearGradient id="clasp" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#0a97c9"/>
+              <stop offset="1" stop-color="#0a56b8"/>
+            </linearGradient>
+
+            <linearGradient id="x1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#0bbf94"/>
+              <stop offset="1" stop-color="#1fd08c"/>
+            </linearGradient>
+
+            <linearGradient id="x2" x1="0" y1="1" x2="1" y2="0">
+              <stop offset="0" stop-color="#1bc89a"/>
+              <stop offset="1" stop-color="#86e870"/>
+            </linearGradient>
+          </defs>
+
+          <path
+            d="M165,262 C165,242 180,231 202,224 L438,143
+               C468,133 492,152 497,186 L498,192 L246,266 Z"
+            fill="url(#card)"
+          />
+
+          <path
+            d="M250,267 L482,206 C512,200 531,219 533,249 L533,270 Z"
+            fill="url(#card)" stroke="#fff" stroke-width="10" stroke-linejoin="round"
+          />
+
+          <rect x="130" y="280" width="418" height="290" rx="50"
+                fill="url(#body)" stroke="#fff" stroke-width="10"/>
+
+          <rect x="440" y="349" width="136" height="106" rx="30"
+                fill="url(#clasp)" stroke="#fff" stroke-width="12"/>
+
+          <circle cx="493" cy="410" r="21" fill="#fff"/>
+          <circle cx="493" cy="410" r="7" fill="#0a6fb8"/>
+
+          <g fill="#fff">
+            <rect x="213" y="468" width="52" height="57" rx="7"/>
+            <rect x="277" y="442" width="44" height="83" rx="7"/>
+            <rect x="338" y="405" width="44" height="120" rx="7"/>
+          </g>
+
+          <path d="M208,443 Q292,412 362,360" fill="none" stroke="#fff"
+                stroke-width="14" stroke-linecap="round"/>
+
+          <path d="M388,343 L338,350 L374,386 Z" fill="#fff"
+                stroke="#fff" stroke-width="6" stroke-linejoin="round"/>
+
+          <g font-family="'Montserrat','Poppins','Segoe UI','Helvetica Neue',Arial,sans-serif"
+             font-weight="800" font-size="275">
+            <text x="610" y="483" textLength="1245" lengthAdjust="spacingAndGlyphs">
+              <tspan fill="#07204a">Wallet</tspan>
+              <tspan fill="#0a7fe8">Map</tspan>
+            </text>
+          </g>
+
+          <polygon points="1858,283 1925,283 2048,483 1981,483" fill="url(#x1)"/>
+          <polygon points="1984,283 2048,283 1925,483 1858,483" fill="url(#x2)" opacity="0.92"/>
+
+        </svg>
+      </a>
+    </div>
+
+
+    <!-- Actions (right) -->
+    <div class="flex shrink-0 items-center gap-1 sm:gap-3">
+
+      <!-- Notifications: hidden on phones -->
+      <button
+        type="button"
+        class="hidden h-10 w-10 items-center justify-center rounded-lg
+               text-gray-500 transition hover:bg-gray-100 sm:flex"
+        aria-label="Notifications"
       >
-        W
-      </div>
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+          <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+        </svg>
+      </button>
 
-      <span class="text-lg font-bold text-gray-900">
-        WalletMapX
-      </span>
+
+      <!-- Profile: hidden on phones (Profile is in the menu) -->
+      <button
+        type="button"
+        (click)="openProfile()"
+        class="hidden h-10 w-10 items-center justify-center
+               overflow-hidden rounded-full bg-blue-100
+               font-semibold text-blue-700 transition
+               hover:ring-2 hover:ring-blue-300 sm:flex"
+        title="My Profile"
+        aria-label="My Profile"
+      >
+
+        @if (profileImageUrl) {
+
+          <img
+            [src]="profileImageUrl"
+            alt="Profile"
+            class="h-full w-full object-cover"
+          />
+
+        } @else {
+
+          <span>
+            {{ profile?.name?.charAt(0)?.toUpperCase() || 'U' }}
+          </span>
+
+        }
+
+      </button>
+
+
+      <!-- Logout: hidden on phones (it is in the menu) -->
+      <button
+        type="button"
+        (click)="logout()"
+        class="hidden h-10 w-10 items-center justify-center rounded-lg
+               text-gray-500 transition hover:bg-red-50
+               hover:text-red-600 sm:flex"
+        title="Logout"
+        aria-label="Logout"
+      >
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </button>
+
+
+      <!-- Menu (far right, phones and tablets only) -->
+      <button
+        type="button"
+        (click)="onMenuClick()"
+        class="flex h-10 w-10 items-center justify-center rounded-lg
+               text-gray-600 hover:bg-gray-100 lg:hidden"
+        [attr.aria-label]="menuOpen ? 'Close menu' : 'Open menu'"
+        [attr.aria-expanded]="menuOpen"
+      >
+
+        @if (menuOpen) {
+
+          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+
+        } @else {
+
+          <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="4" y1="6" x2="20" y2="6"/>
+            <line x1="4" y1="12" x2="20" y2="12"/>
+            <line x1="4" y1="18" x2="20" y2="18"/>
+          </svg>
+
+        }
+
+      </button>
 
     </div>
 
-<!-- Right Side -->
-<div class="flex items-center gap-3">
-
-  <!-- Notification -->
-  <button
-    type="button"
-    class="rounded-lg p-2 text-gray-500
-           transition hover:bg-gray-100"
-    aria-label="Notifications"
-  >
-    🔔
-  </button>
-
-
-  <!-- Profile -->
-  <button
-    type="button"
-    (click)="openProfile()"
-    class="flex h-10 w-10 items-center justify-center
-           overflow-hidden rounded-full
-           bg-blue-100
-           font-semibold text-blue-700
-           transition hover:ring-2
-           hover:ring-blue-300"
-    title="My Profile"
-  >
-
-    @if (profileImageUrl) {
-
-      <img
-        [src]="profileImageUrl"
-        alt="Profile"
-        class="h-full w-full object-cover"
-      />
-
-    }
-
-    @else {
-
-      <span>
-        {{ profile?.name?.charAt(0)?.toUpperCase() || 'U' }}
-      </span>
-
-    }
-
-  </button>
-
-
-  <!-- Logout -->
-  <button
-    type="button"
-    (click)="logout()"
-    class="rounded-lg p-2
-           text-gray-500
-           transition
-           hover:bg-red-50
-           hover:text-red-600"
-    title="Logout"
-    aria-label="Logout"
-  >
-    ⇥
-  </button>
-
-</div>
   </div>
 
 </header>

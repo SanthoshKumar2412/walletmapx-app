@@ -1,20 +1,7 @@
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-  inject
-} from '@angular/core';
-
+// src/app/features/dashboard/dashboard.ts
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-
-import {
-  Chart,
-  ChartConfiguration,
-  registerables
-} from 'chart.js';
+import { Subscription } from 'rxjs';
 
 import {
   DashboardResponse,
@@ -22,28 +9,38 @@ import {
   YearlyNetWorthItem
 } from '../../core/services/dashboard';
 
-Chart.register(...registerables);
+import {
+  MonthlyTrendItem,
+  StatisticsService
+} from '../../core/services/statistics';
+
+import {
+  currentMonth,
+  formatMonthLabel
+} from '../../core/utils/date';
+
+import { MonthPicker } from '../../shared/month-picker/month-picker';
+import { NetWorthChart } from '../../shared/net-worth-chart/net-worth-chart';
+import { IncomeExpenseChart } from '../../shared/income-expense-chart/income-expense-chart';
+
+/** Months shown in the dashboard income/expense chart */
+const TREND_MONTHS = 6;
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [
-    DecimalPipe
+    DecimalPipe,
+    MonthPicker,
+    NetWorthChart,
+    IncomeExpenseChart
   ],
   templateUrl: './dashboard.html'
 })
-export class Dashboard
-  implements OnInit, AfterViewInit, OnDestroy {
+export class Dashboard implements OnInit, OnDestroy {
 
-  private readonly dashboardService =
-    inject(DashboardService);
-
-  // =========================================================
-  // CANVAS
-  // =========================================================
-
-  @ViewChild('netWorthChart')
-  netWorthChartCanvas?: ElementRef<HTMLCanvasElement>;
+  private readonly dashboardService = inject(DashboardService);
+  private readonly statisticsService = inject(StatisticsService);
 
   // =========================================================
   // DATA
@@ -53,378 +50,132 @@ export class Dashboard
 
   yearlyNetWorth: YearlyNetWorthItem[] = [];
 
-  loading = true;
+  trend: MonthlyTrendItem[] = [];
 
+  /** Month shown in the cards (YYYY-MM). Defaults to this month. */
+  selectedMonth = currentMonth();
+
+  readonly maxMonth = currentMonth();
+
+  readonly trendMonths = TREND_MONTHS;
+
+  loading = true;
   graphLoading = true;
+  trendLoading = true;
 
   errorMessage = '';
-
   graphErrorMessage = '';
+  trendErrorMessage = '';
 
-  private netWorthChart: Chart<'line'> | null = null;
+  private dashboardRequest?: Subscription;
 
-  private viewReady = false;
+  get monthLabel(): string {
+    return formatMonthLabel(this.selectedMonth);
+  }
 
   // =========================================================
-  // INIT
+  // INIT / DESTROY
   // =========================================================
 
   ngOnInit(): void {
-
-    this.loadDashboard();
-
+    this.loadDashboard(true);
     this.loadYearlyNetWorth();
+    this.loadTrend();
   }
-
-  // =========================================================
-  // VIEW INIT
-  // =========================================================
-
-  ngAfterViewInit(): void {
-
-    this.viewReady = true;
-
-    this.tryCreateChart();
-  }
-
-  // =========================================================
-  // DESTROY
-  // =========================================================
 
   ngOnDestroy(): void {
-
-    this.destroyChart();
+    this.dashboardRequest?.unsubscribe();
   }
 
   // =========================================================
-  // LOAD DASHBOARD
+  // MONTH PICKER (cards only; charts always show history)
   // =========================================================
 
-  private loadDashboard(): void {
+  onMonthChange(value: string): void {
 
-    this.loading = true;
+    this.selectedMonth = value || currentMonth();
+
+    this.loadDashboard(false);
+  }
+
+  // =========================================================
+  // LOADERS
+  // =========================================================
+
+  private loadDashboard(initial: boolean): void {
+
+    if (initial) {
+      this.loading = true;
+    }
 
     this.errorMessage = '';
 
-    this.dashboardService
-      .getDashboard()
+    // Cancel the previous request if the month changes quickly
+    this.dashboardRequest?.unsubscribe();
+
+    this.dashboardRequest = this.dashboardService
+      .getDashboard(this.selectedMonth)
       .subscribe({
 
         next: (response) => {
-
-          console.log(
-            'Dashboard loaded:',
-            response
-          );
-
           this.dashboard = response;
-
           this.loading = false;
         },
 
         error: (error) => {
-
-          console.error(
-            'Dashboard loading failed:',
-            error
-          );
+          console.error('Dashboard loading failed:', error);
 
           this.errorMessage =
-            error?.error?.message ||
-            'Unable to load dashboard.';
+            error?.error?.message || 'Unable to load dashboard.';
 
           this.loading = false;
         }
-
       });
   }
-
-  // =========================================================
-  // LOAD YEARLY NET WORTH
-  // =========================================================
 
   private loadYearlyNetWorth(): void {
 
     this.graphLoading = true;
-
     this.graphErrorMessage = '';
 
-    this.dashboardService
-      .getYearlyNetWorth()
-      .subscribe({
+    this.dashboardService.getYearlyNetWorth().subscribe({
 
-        next: (response) => {
-
-          console.log(
-            'Yearly net worth:',
-            response
-          );
-
-          this.yearlyNetWorth = response;
-
-          this.graphLoading = false;
-
-          /*
-           * Canvas is inside @else block.
-           * Wait for Angular to render it.
-           */
-          setTimeout(() => {
-
-            this.tryCreateChart();
-
-          }, 0);
-        },
-
-        error: (error) => {
-
-          console.error(
-            'Yearly net worth loading failed:',
-            error
-          );
-
-          this.graphErrorMessage =
-            error?.error?.message ||
-            'Unable to load net worth graph.';
-
-          this.graphLoading = false;
-        }
-
-      });
-  }
-
-  // =========================================================
-  // TRY CREATE CHART
-  // =========================================================
-
-  private tryCreateChart(): void {
-
-    if (!this.viewReady) {
-      return;
-    }
-
-    if (this.graphLoading) {
-      return;
-    }
-
-    if (this.yearlyNetWorth.length === 0) {
-      return;
-    }
-
-    const canvas =
-      this.netWorthChartCanvas?.nativeElement;
-
-    if (!canvas) {
-
-      console.warn(
-        'Net worth canvas is not ready yet.'
-      );
-
-      return;
-    }
-
-    this.createNetWorthChart(canvas);
-  }
-
-  // =========================================================
-  // CREATE NET WORTH CHART
-  // =========================================================
-
-  private createNetWorthChart(
-    canvas: HTMLCanvasElement
-  ): void {
-
-    this.destroyChart();
-
-    /*
-     * Backend returns:
-     *
-     * [
-     *   {
-     *     month: "2026-09-01",
-     *     netWorth: 21000
-     *   }
-     * ]
-     *
-     * Sort oldest -> newest.
-     */
-
-    const sortedData =
-      [...this.yearlyNetWorth].sort(
-        (a, b) =>
-          a.month.localeCompare(b.month)
-      );
-
-    const labels =
-      sortedData.map(
-        item => this.formatMonth(item.month)
-      );
-
-    const values =
-      sortedData.map(
-        item => item.netWorth
-      );
-
-    const configuration:
-      ChartConfiguration<'line'> = {
-
-      type: 'line',
-
-      data: {
-
-        labels,
-
-        datasets: [
-
-          {
-            label: 'Net Worth',
-
-            data: values,
-
-            fill: true,
-
-            tension: 0.35,
-
-            borderWidth: 2,
-
-            pointRadius: 4,
-
-            pointHoverRadius: 6
-          }
-
-        ]
-
+      next: (response) => {
+        this.yearlyNetWorth = response;
+        this.graphLoading = false;
       },
 
-      options: {
+      error: (error) => {
+        console.error('Yearly net worth loading failed:', error);
 
-        responsive: true,
+        this.graphErrorMessage =
+          error?.error?.message || 'Unable to load net worth graph.';
 
-        maintainAspectRatio: false,
-
-        interaction: {
-
-          mode: 'index',
-
-          intersect: false
-        },
-
-        plugins: {
-
-          legend: {
-
-            display: true,
-
-            position: 'top'
-          },
-
-          tooltip: {
-
-            callbacks: {
-
-              label: (context) => {
-
-                const value =
-                  context.parsed.y ?? 0;
-
-                return ` Net Worth: ₹${value.toLocaleString(
-                  'en-IN',
-                  {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                  }
-                )}`;
-              }
-
-            }
-
-          }
-
-        },
-
-        scales: {
-
-          x: {
-
-            grid: {
-
-              display: false
-            }
-
-          },
-
-          y: {
-
-            beginAtZero: false,
-
-            ticks: {
-
-              callback: (value) => {
-
-                return '₹' +
-                  Number(value).toLocaleString(
-                    'en-IN'
-                  );
-              }
-
-            }
-
-          }
-
-        }
-
+        this.graphLoading = false;
       }
-
-    };
-
-    this.netWorthChart =
-      new Chart(
-        canvas,
-        configuration
-      );
+    });
   }
 
-  // =========================================================
-  // FORMAT MONTH
-  // =========================================================
+  private loadTrend(): void {
 
-  private formatMonth(
-    month: string
-  ): string {
+    this.trendLoading = true;
+    this.trendErrorMessage = '';
 
-    /*
-     * LocalDate from Spring Boot is serialized as:
-     *
-     * 2026-09-01
-     */
+    this.statisticsService.getTrend(TREND_MONTHS).subscribe({
 
-    const date =
-      new Date(`${month}T00:00:00`);
+      next: (response) => {
+        this.trend = response;
+        this.trendLoading = false;
+      },
 
-    if (Number.isNaN(date.getTime())) {
+      error: (error) => {
+        console.error('Income/expense trend failed:', error);
 
-      return month;
-    }
+        this.trendErrorMessage =
+          error?.error?.message || 'Unable to load the income and expense graph.';
 
-    return date.toLocaleDateString(
-      'en-IN',
-      {
-        month: 'short',
-        year: 'numeric'
+        this.trendLoading = false;
       }
-    );
-  }
-
-  // =========================================================
-  // DESTROY CHART
-  // =========================================================
-
-  private destroyChart(): void {
-
-    if (this.netWorthChart) {
-
-      this.netWorthChart.destroy();
-
-      this.netWorthChart = null;
-    }
+    });
   }
 }

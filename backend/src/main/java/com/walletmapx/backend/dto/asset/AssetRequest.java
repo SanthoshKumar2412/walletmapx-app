@@ -1,7 +1,9 @@
 package com.walletmapx.backend.dto.asset;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -10,17 +12,17 @@ import java.time.LocalDate;
 @Data
 public class AssetRequest {
 
-    private Long categoryId;
+	@NotNull(message = "Category is required")
+	private Long categoryId;
 
     @NotBlank
     private String name;
 
     private String institution;
 
-    @Positive
+    @PositiveOrZero 
     private BigDecimal investedAmount;
-
-    @Positive
+    @PositiveOrZero 
     private BigDecimal currentValue;
 
     private LocalDate purchaseDate;

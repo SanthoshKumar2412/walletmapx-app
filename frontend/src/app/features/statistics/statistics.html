@@ -1,23 +1,55 @@
 <div class="mx-auto w-full max-w-7xl">
 
-  <!-- Header -->
-  <div class="mb-6">
+  <!-- ========================================================= -->
+  <!-- HEADER + MONTH PICKER -->
+  <!-- ========================================================= -->
 
-    <h1 class="text-2xl font-bold text-gray-900 sm:text-3xl">
-      Statistics
-    </h1>
+  <div
+    class="mb-6 flex flex-col gap-4
+           sm:flex-row sm:items-center
+           sm:justify-between"
+  >
 
-    <p class="mt-1 text-sm text-gray-500">
-      Analyze your financial performance
-    </p>
+    <div>
+
+      <h1 class="text-2xl font-bold text-gray-900 sm:text-3xl">
+        Statistics
+      </h1>
+
+      <p class="mt-1 text-sm text-gray-500">
+        Income, expenses and categories for {{ monthLabel }}.
+        Net worth is current.
+      </p>
+
+    </div>
+
+    <div class="flex items-center gap-2">
+
+      <span class="text-sm font-medium text-gray-600">
+        Month
+      </span>
+
+      <app-month-picker
+        [value]="selectedMonth"
+        [max]="maxMonth"
+        (valueChange)="onMonthChange($event)"
+      />
+
+    </div>
 
   </div>
 
 
-  <!-- Error -->
+  <!-- ========================================================= -->
+  <!-- ERROR -->
+  <!-- ========================================================= -->
+
   @if (errorMessage) {
 
-    <div class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+    <div
+      class="mb-6 rounded-lg border
+             border-red-200 bg-red-50 p-4"
+    >
 
       <p class="text-sm font-medium text-red-700">
         {{ errorMessage }}
@@ -28,10 +60,16 @@
   }
 
 
-  <!-- Loading -->
+  <!-- ========================================================= -->
+  <!-- LOADING -->
+  <!-- ========================================================= -->
+
   @if (loading) {
 
-    <div class="rounded-xl bg-white p-8 text-center shadow-sm">
+    <div
+      class="rounded-xl bg-white p-8
+             text-center shadow-sm"
+    >
 
       <p class="text-sm text-gray-500">
         Loading statistics...
@@ -42,61 +80,101 @@
   }
 
 
+  <!-- ========================================================= -->
+  <!-- STATISTICS -->
+  <!-- ========================================================= -->
+
   @else if (statistics) {
 
-    <!-- Financial Summary -->
-    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
 
-      <!-- Income -->
-      <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
+    <!-- ======================================================= -->
+    <!-- FINANCIAL SUMMARY -->
+    <!-- ======================================================= -->
+
+    <div
+      class="grid grid-cols-1 gap-5
+             sm:grid-cols-2 lg:grid-cols-4"
+    >
+
+
+      <!-- INCOME -->
+
+      <div
+        class="rounded-xl bg-white p-5
+               shadow-sm ring-1 ring-gray-100"
+      >
 
         <p class="text-sm text-gray-500">
           Total Income
         </p>
 
-        <p class="mt-2 text-2xl font-bold text-green-600">
+        <p
+          class="mt-2 text-2xl font-bold
+                 text-green-600"
+        >
           ₹{{ totalIncome | number:'1.0-2' }}
         </p>
 
       </div>
 
 
-      <!-- Expenses -->
-      <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
+      <!-- EXPENSES -->
+
+      <div
+        class="rounded-xl bg-white p-5
+               shadow-sm ring-1 ring-gray-100"
+      >
 
         <p class="text-sm text-gray-500">
           Total Expenses
         </p>
 
-        <p class="mt-2 text-2xl font-bold text-red-600">
+        <p
+          class="mt-2 text-2xl font-bold
+                 text-red-600"
+        >
           ₹{{ totalExpenses | number:'1.0-2' }}
         </p>
 
       </div>
 
 
-      <!-- Savings -->
-      <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
+      <!-- SAVINGS -->
+
+      <div
+        class="rounded-xl bg-white p-5
+               shadow-sm ring-1 ring-gray-100"
+      >
 
         <p class="text-sm text-gray-500">
           Total Savings
         </p>
 
-        <p class="mt-2 text-2xl font-bold text-blue-600">
+        <p
+          class="mt-2 text-2xl font-bold
+                 text-blue-600"
+        >
           ₹{{ totalSavings | number:'1.0-2' }}
         </p>
 
       </div>
 
 
-      <!-- Savings Rate -->
-      <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
+      <!-- SAVINGS RATE -->
+
+      <div
+        class="rounded-xl bg-white p-5
+               shadow-sm ring-1 ring-gray-100"
+      >
 
         <p class="text-sm text-gray-500">
           Savings Rate
         </p>
 
-        <p class="mt-2 text-2xl font-bold text-gray-900">
+        <p
+          class="mt-2 text-2xl font-bold
+                 text-gray-900"
+        >
           {{ savingsRate | number:'1.0-2' }}%
         </p>
 
@@ -105,52 +183,87 @@
     </div>
 
 
-    <!-- Net Worth -->
-    <div class="mt-6 rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+    <!-- ======================================================= -->
+    <!-- NET WORTH -->
+    <!-- ======================================================= -->
+
+    <div
+      class="mt-6 rounded-xl bg-white
+             p-6 shadow-sm ring-1 ring-gray-100"
+    >
 
       <p class="text-sm text-gray-500">
         Net Worth
       </p>
 
-      <p class="mt-2 text-3xl font-bold text-gray-900">
+      <p
+        class="mt-2 text-3xl font-bold
+               text-gray-900"
+      >
         ₹{{ netWorth | number:'1.0-2' }}
       </p>
 
-      <div class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
 
-        <div class="rounded-lg bg-gray-50 p-4">
+      <div
+        class="mt-5 grid grid-cols-1
+               gap-4 sm:grid-cols-3"
+      >
+
+
+        <!-- ASSETS -->
+
+        <div
+          class="rounded-lg bg-gray-50 p-4"
+        >
 
           <p class="text-sm text-gray-500">
             Assets
           </p>
 
-          <p class="mt-1 font-semibold text-gray-900">
+          <p
+            class="mt-1 font-semibold
+                   text-gray-900"
+          >
             ₹{{ totalAssets | number:'1.0-2' }}
           </p>
 
         </div>
 
 
-        <div class="rounded-lg bg-gray-50 p-4">
+        <!-- INVESTMENTS -->
+
+        <div
+          class="rounded-lg bg-gray-50 p-4"
+        >
 
           <p class="text-sm text-gray-500">
             Investments
           </p>
 
-          <p class="mt-1 font-semibold text-gray-900">
+          <p
+            class="mt-1 font-semibold
+                   text-gray-900"
+          >
             ₹{{ totalInvestments | number:'1.0-2' }}
           </p>
 
         </div>
 
 
-        <div class="rounded-lg bg-gray-50 p-4">
+        <!-- LIABILITIES -->
+
+        <div
+          class="rounded-lg bg-gray-50 p-4"
+        >
 
           <p class="text-sm text-gray-500">
             Liabilities
           </p>
 
-          <p class="mt-1 font-semibold text-gray-900">
+          <p
+            class="mt-1 font-semibold
+                   text-gray-900"
+          >
             ₹{{ totalLiabilities | number:'1.0-2' }}
           </p>
 
@@ -161,8 +274,17 @@
     </div>
 
 
-    <!-- Monthly Trend -->
-    <div class="mt-6 rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+    <!-- ======================================================= -->
+    <!-- MONTHLY TREND -->
+    <!-- ======================================================= -->
+
+    <div
+      class="mt-6 rounded-xl bg-white
+             p-6 shadow-sm ring-1 ring-gray-100"
+    >
+
+
+      <!-- TREND HEADER -->
 
       <div
         class="mb-5 flex flex-col gap-3
@@ -172,7 +294,10 @@
 
         <div>
 
-          <h2 class="text-lg font-semibold text-gray-900">
+          <h2
+            class="text-lg font-semibold
+                   text-gray-900"
+          >
             Monthly Trend
           </h2>
 
@@ -182,6 +307,8 @@
 
         </div>
 
+
+        <!-- MONTH RANGE -->
 
         <select
           [value]="selectedMonths"
@@ -212,6 +339,40 @@
       </div>
 
 
+      <!-- ===================================================== -->
+      <!-- TREND ERROR -->
+      <!-- ===================================================== -->
+
+      @if (trendError) {
+
+        <p class="mb-3 text-sm text-red-600">
+          {{ trendError }}
+        </p>
+
+      }
+
+
+      <!-- ===================================================== -->
+      <!-- INCOME / EXPENSE CHART -->
+      <!-- ===================================================== -->
+
+      @if (trend.length > 0) {
+
+        <div class="mb-6">
+
+          <app-income-expense-chart
+            [data]="trend"
+          />
+
+        </div>
+
+      }
+
+
+      <!-- ===================================================== -->
+      <!-- NO TREND DATA -->
+      <!-- ===================================================== -->
+
       @if (trend.length === 0) {
 
         <div class="py-8 text-center">
@@ -224,29 +385,56 @@
 
       }
 
+
+      <!-- ===================================================== -->
+      <!-- TREND TABLE -->
+      <!-- ===================================================== -->
+
       @else {
 
         <div class="overflow-x-auto">
 
-          <table class="w-full min-w-[600px] text-left">
+          <table
+            class="w-full min-w-[600px]
+                   text-left"
+          >
 
-            <thead class="border-b border-gray-100 bg-gray-50">
+            <thead
+              class="border-b border-gray-100
+                     bg-gray-50"
+            >
 
               <tr>
 
-                <th class="px-4 py-3 text-xs font-semibold uppercase text-gray-500">
+                <th
+                  class="px-4 py-3
+                         text-xs font-semibold
+                         uppercase text-gray-500"
+                >
                   Month
                 </th>
 
-                <th class="px-4 py-3 text-xs font-semibold uppercase text-gray-500">
+                <th
+                  class="px-4 py-3
+                         text-xs font-semibold
+                         uppercase text-gray-500"
+                >
                   Income
                 </th>
 
-                <th class="px-4 py-3 text-xs font-semibold uppercase text-gray-500">
+                <th
+                  class="px-4 py-3
+                         text-xs font-semibold
+                         uppercase text-gray-500"
+                >
                   Expenses
                 </th>
 
-                <th class="px-4 py-3 text-xs font-semibold uppercase text-gray-500">
+                <th
+                  class="px-4 py-3
+                         text-xs font-semibold
+                         uppercase text-gray-500"
+                >
                   Savings
                 </th>
 
@@ -255,26 +443,57 @@
             </thead>
 
 
-            <tbody class="divide-y divide-gray-100">
+            <tbody
+              class="divide-y divide-gray-100"
+            >
 
-              @for (item of trend; track item.month) {
+              @for (
+                item of trend;
+                track item.month
+              ) {
 
-                <tr class="hover:bg-gray-50">
+                <tr
+                  class="hover:bg-gray-50"
+                >
 
-                  <td class="px-4 py-4 font-medium text-gray-900">
-                    {{ item.month }}
+                  <!-- FORMATTED MONTH -->
+
+                  <td
+                    class="px-4 py-4
+                           font-medium
+                           text-gray-900"
+                  >
+                    {{ formatTrendMonth(item.month) }}
                   </td>
 
-                  <td class="px-4 py-4 font-semibold text-green-600">
+
+                  <!-- INCOME -->
+
+                  <td
+                    class="px-4 py-4
+                           font-semibold
+                           text-green-600"
+                  >
                     ₹{{ item.totalIncome | number:'1.0-2' }}
                   </td>
 
-                  <td class="px-4 py-4 font-semibold text-red-600">
+
+                  <!-- EXPENSES -->
+
+                  <td
+                    class="px-4 py-4
+                           font-semibold
+                           text-red-600"
+                  >
                     ₹{{ item.totalExpenses | number:'1.0-2' }}
                   </td>
 
+
+                  <!-- SAVINGS -->
+
                   <td
-                    class="px-4 py-4 font-semibold"
+                    class="px-4 py-4
+                           font-semibold"
                     [class.text-green-600]="item.savings >= 0"
                     [class.text-red-600]="item.savings < 0"
                   >
@@ -296,16 +515,33 @@
     </div>
 
 
-    <!-- Category Breakdown -->
-    <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+    <!-- ======================================================= -->
+    <!-- CATEGORY BREAKDOWN -->
+    <!-- ======================================================= -->
+
+    <div
+      class="mt-6 grid grid-cols-1
+             gap-6 lg:grid-cols-2"
+    >
 
 
-      <!-- Income Categories -->
-      <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+      <!-- ===================================================== -->
+      <!-- INCOME CATEGORIES -->
+      <!-- ===================================================== -->
 
-        <h2 class="mb-4 text-lg font-semibold text-gray-900">
+      <div
+        class="rounded-xl bg-white
+               p-6 shadow-sm
+               ring-1 ring-gray-100"
+      >
+
+        <h2
+          class="mb-4 text-lg font-semibold
+                 text-gray-900"
+        >
           Income by Category
         </h2>
+
 
         @if (incomeCategories.length === 0) {
 
@@ -314,6 +550,7 @@
           </p>
 
         }
+
 
         @else {
 
@@ -325,15 +562,23 @@
             ) {
 
               <div
-                class="flex items-center justify-between
-                       rounded-lg bg-gray-50 p-3"
+                class="flex items-center
+                       justify-between
+                       rounded-lg
+                       bg-gray-50 p-3"
               >
 
-                <span class="text-sm font-medium text-gray-700">
+                <span
+                  class="text-sm font-medium
+                         text-gray-700"
+                >
                   {{ category[0] }}
                 </span>
 
-                <span class="text-sm font-semibold text-green-600">
+                <span
+                  class="text-sm font-semibold
+                         text-green-600"
+                >
                   ₹{{ category[1] | number:'1.0-2' }}
                 </span>
 
@@ -348,12 +593,23 @@
       </div>
 
 
-      <!-- Expense Categories -->
-      <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-100">
+      <!-- ===================================================== -->
+      <!-- EXPENSE CATEGORIES -->
+      <!-- ===================================================== -->
 
-        <h2 class="mb-4 text-lg font-semibold text-gray-900">
+      <div
+        class="rounded-xl bg-white
+               p-6 shadow-sm
+               ring-1 ring-gray-100"
+      >
+
+        <h2
+          class="mb-4 text-lg font-semibold
+                 text-gray-900"
+        >
           Expenses by Category
         </h2>
+
 
         @if (expenseCategories.length === 0) {
 
@@ -362,6 +618,7 @@
           </p>
 
         }
+
 
         @else {
 
@@ -373,15 +630,23 @@
             ) {
 
               <div
-                class="flex items-center justify-between
-                       rounded-lg bg-gray-50 p-3"
+                class="flex items-center
+                       justify-between
+                       rounded-lg
+                       bg-gray-50 p-3"
               >
 
-                <span class="text-sm font-medium text-gray-700">
+                <span
+                  class="text-sm font-medium
+                         text-gray-700"
+                >
                   {{ category[0] }}
                 </span>
 
-                <span class="text-sm font-semibold text-red-600">
+                <span
+                  class="text-sm font-semibold
+                         text-red-600"
+                >
                   ₹{{ category[1] | number:'1.0-2' }}
                 </span>
 

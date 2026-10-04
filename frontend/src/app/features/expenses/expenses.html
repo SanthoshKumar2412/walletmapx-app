@@ -78,7 +78,84 @@
   }
 
 
-  <!-- Form -->
+  <!-- ===================================================== -->
+  <!-- MONTH SUMMARY -->
+  <!-- ===================================================== -->
+
+  <div
+    class="mb-6 grid grid-cols-1 gap-4
+           sm:grid-cols-3"
+  >
+
+    <!-- MONTH FILTER -->
+
+    <div
+      class="rounded-xl bg-white p-5
+             shadow-sm ring-1 ring-gray-100"
+    >
+
+    <p class="mb-2 text-sm text-gray-500">Month</p>
+
+<app-month-picker
+  [(value)]="selectedMonth"
+  [allowClear]="true"
+/>
+
+<p class="mt-2 text-xs text-gray-400">
+  Choose "All months" to see everything.
+</p>
+
+    </div>
+
+
+    <!-- MONTH TOTAL -->
+
+    <div
+      class="rounded-xl bg-white p-5
+             shadow-sm ring-1 ring-gray-100"
+    >
+
+      <p class="text-sm text-gray-500">
+        Expenses · {{ monthLabel }}
+      </p>
+
+      <p
+        class="mt-2 text-2xl font-bold
+               text-red-600"
+      >
+        ₹{{ monthTotal | number:'1.0-2' }}
+      </p>
+
+    </div>
+
+
+    <!-- TRANSACTIONS -->
+
+    <div
+      class="rounded-xl bg-white p-5
+             shadow-sm ring-1 ring-gray-100"
+    >
+
+      <p class="text-sm text-gray-500">
+        Transactions
+      </p>
+
+      <p
+        class="mt-2 text-2xl font-bold
+               text-gray-900"
+      >
+        {{ expenses.length }}
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <!-- ===================================================== -->
+  <!-- FORM -->
+  <!-- ===================================================== -->
+
   @if (showForm) {
 
     <div
@@ -96,12 +173,15 @@
           class="text-lg font-semibold
                  text-gray-900"
         >
+
           @if (editingExpenseId !== null) {
             Edit Expense
           } @else {
             Add Expense
           }
+
         </h2>
+
 
         <button
           type="button"
@@ -123,6 +203,7 @@
       >
 
         <!-- Category -->
+
         <div>
 
           <label
@@ -152,6 +233,7 @@
 
 
         <!-- Amount -->
+
         <div>
 
           <label
@@ -182,6 +264,7 @@
 
 
         <!-- Date -->
+
         <div>
 
           <label
@@ -209,6 +292,7 @@
 
 
         <!-- Description -->
+
         <div>
 
           <label
@@ -238,6 +322,7 @@
 
 
         <!-- Buttons -->
+
         <div
           class="flex flex-col gap-3
                  sm:flex-row
@@ -257,6 +342,7 @@
           >
             Cancel
           </button>
+
 
           <button
             type="submit"
@@ -289,7 +375,10 @@
   }
 
 
-  <!-- Expense History -->
+  <!-- ===================================================== -->
+  <!-- EXPENSE HISTORY -->
+  <!-- ===================================================== -->
+
   <div
     class="overflow-hidden rounded-xl
            bg-white shadow-sm
@@ -311,6 +400,7 @@
 
 
     <!-- Loading -->
+
     @if (loading) {
 
       <div class="p-6">
@@ -325,6 +415,7 @@
 
 
     <!-- Empty -->
+
     @else if (expenses.length === 0) {
 
       <div class="p-8 text-center">
@@ -349,9 +440,11 @@
 
 
     <!-- Data -->
+
     @else {
 
       <!-- Desktop -->
+
       <div
         class="hidden overflow-x-auto
                md:block"
@@ -484,6 +577,7 @@
                       Edit
                     </button>
 
+
                     <button
                       type="button"
                       (click)="deleteExpense(expense.id)"
@@ -511,6 +605,7 @@
 
 
       <!-- Mobile -->
+
       <div
         class="divide-y divide-gray-100
                md:hidden"
@@ -581,6 +676,7 @@
               >
                 Edit
               </button>
+
 
               <button
                 type="button"

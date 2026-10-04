@@ -1,1 +1,312 @@
-<p>register works!</p>
+<div
+  class="flex min-h-[100dvh] items-center
+         justify-center bg-gray-50 px-4 py-8"
+>
+
+  <div
+    class="w-full max-w-md
+           rounded-2xl bg-white
+           p-6 shadow-sm
+           ring-1 ring-gray-100 sm:p-8"
+  >
+
+    <!-- ================================================= -->
+    <!-- HEADER -->
+    <!-- ================================================= -->
+
+    <div class="mb-8 text-center">
+
+      <div
+        class="mx-auto mb-4 flex h-12 w-12
+               items-center justify-center
+               rounded-xl bg-blue-600
+               text-xl font-bold text-white"
+      >
+        W
+      </div>
+
+      <h1
+        class="text-2xl font-bold text-gray-900"
+      >
+        Create your account
+      </h1>
+
+      <p
+        class="mt-2 text-sm text-gray-500"
+      >
+        Start managing your finances with WalletMapX
+      </p>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- ERROR -->
+    <!-- ================================================= -->
+
+    @if (errorMessage) {
+
+      <div
+        class="mb-5 rounded-lg
+               border border-red-200
+               bg-red-50 p-3"
+      >
+
+        <p
+          class="text-sm font-medium
+                 text-red-700"
+        >
+          {{ errorMessage }}
+        </p>
+
+      </div>
+
+    }
+
+
+    <!-- ================================================= -->
+    <!-- SUCCESS -->
+    <!-- ================================================= -->
+
+    @if (successMessage) {
+
+      <div
+        class="mb-5 rounded-lg
+               border border-green-200
+               bg-green-50 p-3"
+      >
+
+        <p
+          class="text-sm font-medium
+                 text-green-700"
+        >
+          {{ successMessage }}
+        </p>
+
+      </div>
+
+    }
+
+
+    <!-- ================================================= -->
+    <!-- REGISTER FORM -->
+    <!-- ================================================= -->
+
+    <form
+      [formGroup]="registerForm"
+      (ngSubmit)="onSubmit()"
+      class="space-y-5"
+    >
+
+      <!-- NAME -->
+
+      <div>
+
+        <label
+          for="name"
+          class="mb-1.5 block
+                 text-sm font-medium
+                 text-gray-700"
+        >
+          Full Name
+        </label>
+
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          placeholder="Enter your name"
+          autocomplete="name"
+          class="w-full rounded-lg
+                 border border-gray-300
+                 px-3 py-2.5
+                 text-sm text-gray-900
+                 outline-none
+                 transition
+                 focus:border-blue-500
+                 focus:ring-2
+                 focus:ring-blue-100"
+        />
+
+        @if (name.invalid && name.touched) {
+
+          <p
+            class="mt-1 text-xs text-red-600"
+          >
+            @if (name.errors?.['required']) {
+              Name is required.
+            }
+            @else if (name.errors?.['minlength']) {
+              Name must be at least 2 characters.
+            }
+            @else if (name.errors?.['maxlength']) {
+              Name cannot exceed 100 characters.
+            }
+          </p>
+
+        }
+
+      </div>
+
+
+      <!-- EMAIL -->
+
+      <div>
+
+        <label
+          for="email"
+          class="mb-1.5 block
+                 text-sm font-medium
+                 text-gray-700"
+        >
+          Email
+        </label>
+
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="Enter your email"
+          autocomplete="email"
+          class="w-full rounded-lg
+                 border border-gray-300
+                 px-3 py-2.5
+                 text-sm text-gray-900
+                 outline-none
+                 transition
+                 focus:border-blue-500
+                 focus:ring-2
+                 focus:ring-blue-100"
+        />
+
+        @if (email.invalid && email.touched) {
+
+          <p
+            class="mt-1 text-xs text-red-600"
+          >
+            @if (email.errors?.['required']) {
+              Email is required.
+            }
+            @else if (email.errors?.['email']) {
+              Please enter a valid email.
+            }
+          </p>
+
+        }
+
+      </div>
+
+
+      <!-- PASSWORD -->
+
+      <div>
+
+        <label
+          for="password"
+          class="mb-1.5 block
+                 text-sm font-medium
+                 text-gray-700"
+        >
+          Password
+        </label>
+
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="Enter your password"
+          autocomplete="new-password"
+          class="w-full rounded-lg
+                 border border-gray-300
+                 px-3 py-2.5
+                 text-sm text-gray-900
+                 outline-none
+                 transition
+                 focus:border-blue-500
+                 focus:ring-2
+                 focus:ring-blue-100"
+        />
+
+        @if (password.invalid && password.touched) {
+
+          <p
+            class="mt-1 text-xs text-red-600"
+          >
+            @if (password.errors?.['required']) {
+              Password is required.
+            }
+            @else if (password.errors?.['minlength']) {
+              Password must be at least 6 characters.
+            }
+            @else if (password.errors?.['maxlength']) {
+              Password cannot exceed 100 characters.
+            }
+          </p>
+
+        }
+
+        <p
+          class="mt-1 text-xs text-gray-400"
+        >
+          Password must contain at least 6 characters.
+        </p>
+
+      </div>
+
+
+      <!-- REGISTER BUTTON -->
+
+      <button
+        type="submit"
+        [disabled]="loading"
+        class="w-full rounded-lg
+               bg-blue-600 px-4 py-2.5
+               text-sm font-semibold
+               text-white
+               transition
+               hover:bg-blue-700
+               disabled:cursor-not-allowed
+               disabled:opacity-60"
+      >
+
+        @if (loading) {
+          Creating account...
+        }
+        @else {
+          Create Account
+        }
+
+      </button>
+
+    </form>
+
+
+    <!-- ================================================= -->
+    <!-- LOGIN LINK -->
+    <!-- ================================================= -->
+
+    <div
+      class="mt-6 text-center"
+    >
+
+      <p
+        class="text-sm text-gray-500"
+      >
+        Already have an account?
+
+        <a
+          routerLink="/login"
+          class="font-semibold
+                 text-blue-600
+                 hover:text-blue-700"
+        >
+          Login
+        </a>
+
+      </p>
+
+    </div>
+
+  </div>
+
+</div>

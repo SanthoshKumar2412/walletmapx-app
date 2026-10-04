@@ -1,9 +1,10 @@
-<div class="min-h-screen bg-gray-100">
+<div class="min-h-[100dvh] bg-gray-100">
 
   <!-- Navbar -->
   <app-navbar
-    (menuClicked)="toggleSidebar()"
-  ></app-navbar>
+  [menuOpen]="sidebarOpen"
+  (menuClicked)="toggleSidebar()"
+></app-navbar>
 
   <!-- Mobile Overlay -->
   @if (sidebarOpen) {
@@ -14,10 +15,7 @@
   }
 
   <!-- Sidebar -->
-  <app-sidebar
-    [class.-translate-x-full]="!sidebarOpen"
-    (menuItemClicked)="closeSidebar()"
-  ></app-sidebar>
+  <app-sidebar [open]="sidebarOpen" (menuItemClicked)="closeSidebar()"></app-sidebar>
 
   <!-- Main Content -->
   <main
